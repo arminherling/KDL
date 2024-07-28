@@ -1,4 +1,5 @@
 #include <AalTest.h>
+
 #include <KDL/Lexer.h>
 
 namespace

@@ -1,5 +1,7 @@
 #include "ParserTests.h"
+
 #include <AalTest.h>
+
 #include <QDirIterator>
 #include <QFile>
 

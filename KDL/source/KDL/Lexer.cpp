@@ -1,6 +1,11 @@
 #include <KDL/Lexer.h>
 
-int empty()
+namespace KDL 
 {
-    return 0;
+    TokenBuffer Lex(const QString& source) noexcept
+    {
+        TokenBuffer buffer{ source };
+
+        return buffer;
+    }
 }

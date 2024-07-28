@@ -1,5 +1,10 @@
 #pragma once
 
 #include <KDL/API.h>
+#include <KDL/TokenBuffer.h>
+#include <QString>
 
-KDL_API int empty();
+namespace KDL
+{
+    KDL_API [[nodiscard]] TokenBuffer Lex(const QString& source) noexcept;
+}
