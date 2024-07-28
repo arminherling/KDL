@@ -14,3 +14,4 @@ add_subdirectory(KDL)
 
 add_subdirectory(Tests/AllInOne)
 add_subdirectory(Tests/LexerTests)
+add_subdirectory(Tests/ParserTests)
