@@ -92,9 +92,20 @@ namespace KDL
                     break;
                 }
                 case u'=':
+                case u'\ufe66': // Small Equal Sign
+                case u'\uff1d': // Fullwidth Equal Sign
                 {
                     buffer.addToken(TokenKind::Equal, currentIndex, currentIndex + 1);
                     currentIndex++;
+                    break;
+                }
+                case 0xD83D: // Heavy Equal Sign
+                {
+                    if (PeekNextChar(source, currentIndex).unicode() == 0xDFF0)
+                    {
+                        buffer.addToken(TokenKind::Equal, currentIndex, currentIndex + 2);
+                        currentIndex += 2;
+                    }
                     break;
                 }
                 case u'(':

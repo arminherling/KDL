@@ -25,7 +25,6 @@ namespace
     QList<std::tuple<QString, QString, TokenKind>> SingleCharacter_Data()
     {
         return {
-            std::make_tuple(QString("Equal"), QString("="), TokenKind::Equal),
             std::make_tuple(QString("OpenParenthesis"), QString("("), TokenKind::OpenParenthesis),
             std::make_tuple(QString("CloseParenthesis"), QString(")"), TokenKind::CloseParenthesis),
             std::make_tuple(QString("OpenBracket"), QString("{"), TokenKind::OpenBracket),
@@ -38,6 +37,15 @@ namespace
         };
     }
 
+    QList<std::tuple<QString, QString, TokenKind>> Equal_Data()
+    {
+        return {
+            std::make_tuple(QString("Equal"), QString("="), TokenKind::Equal),
+            std::make_tuple(QString("Small Equal Sign"), QString("\ufe66"), TokenKind::Equal),
+            std::make_tuple(QString("Fullwidth Equal Sign"), QString("\uff1d"), TokenKind::Equal),
+            std::make_tuple(QString("Heavy Equal Sign"), QString("\U0001f7f0"), TokenKind::Equal)
+        };
+    }
     QList<std::tuple<QString, QString, TokenKind>> Newline_Data()
     {
         return {
@@ -73,6 +81,7 @@ TestSuite LexerTestsSuite()
 {
     TestSuite suite{};
     suite.add(QString("SingleCharacter"), Compare, SingleCharacter_Data);
+    suite.add(QString("Equal"), Compare, Equal_Data);
     suite.add(QString("Newline"), Compare, Newline_Data);
     suite.add(QString("SlashDash"), Compare, SlashDash_Data);
     suite.add(QString("Keywords"), Compare, Keywords_Data);
