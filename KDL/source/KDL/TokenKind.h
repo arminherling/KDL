@@ -15,6 +15,11 @@ namespace KDL {
         OpenBracket,
         CloseBracket,
         Terminator,
+        Keyword_True,
+        Keyword_False,
+        Keyword_NaN,
+        Keyword_Infinity,
+        Keyword_NegativeInfinity,
         EndOfFile
     };
 
