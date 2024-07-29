@@ -9,10 +9,8 @@ namespace
 {
     using namespace KDL;
 
-    void SingleCharacter(const QString& testName, const QString& source, TokenKind expectedKind)
+    void Compare(const QString& testName, const QString& source, TokenKind expectedKind)
     {
-        Stringify(TokenKind::Equal);
-
         const auto startTime = std::chrono::high_resolution_clock::now();
 
         const auto tokens = Lex(source);
@@ -40,29 +38,27 @@ namespace
         };
     }
 
-    void Keywords(const QString& source, TokenKind expectedKind)
-    {
-        Stringify(TokenKind::Equal);
-
-        const auto startTime = std::chrono::high_resolution_clock::now();
-
-        const auto tokens = Lex(source);
-        const auto token = tokens[0];
-
-        const auto endTime = std::chrono::high_resolution_clock::now();
-        std::cout << "      Lex(): " << Stringify(endTime - startTime).toStdString() << '\n';
-
-        AalTest::AreEqual(expectedKind, token.kind);
-    }
-
-    QList<std::tuple<QString, TokenKind>> Keywords_Data()
+    QList<std::tuple<QString, QString, TokenKind>> Newline_Data()
     {
         return {
-            std::make_tuple(QString("#true"), TokenKind::Keyword_True),
-            std::make_tuple(QString("#false"),  TokenKind::Keyword_False),
-            std::make_tuple(QString("#nan"), TokenKind::Keyword_NaN),
-            std::make_tuple(QString("#inf"),  TokenKind::Keyword_Infinity),
-            std::make_tuple(QString("#-inf"), TokenKind::Keyword_NegativeInfinity)
+            std::make_tuple(QString("Carriage Return"), QString("\r"), TokenKind::Newline),
+            std::make_tuple(QString("Line Feed"), QString("\n"), TokenKind::Newline),
+            std::make_tuple(QString("Carriage Return and Line Feed"), QString("\r\n"), TokenKind::Newline),
+            std::make_tuple(QString("Next Line"), QString("\u0085"), TokenKind::Newline),
+            std::make_tuple(QString("Form Feed"), QString("\f"), TokenKind::Newline),
+            std::make_tuple(QString("Line Separator"), QString(QChar::SpecialCharacter::LineSeparator), TokenKind::Newline),
+            std::make_tuple(QString("Paragraph Separator"), QString(QChar::SpecialCharacter::ParagraphSeparator), TokenKind::Newline)
+        };
+    }
+
+    QList<std::tuple<QString, QString, TokenKind>> Keywords_Data()
+    {
+        return {
+            std::make_tuple(QString("True"), QString("#true"), TokenKind::Keyword_True),
+            std::make_tuple(QString("False"), QString("#false"),  TokenKind::Keyword_False),
+            std::make_tuple(QString("NaN"), QString("#nan"), TokenKind::Keyword_NaN),
+            std::make_tuple(QString("Inf"), QString("#inf"),  TokenKind::Keyword_Infinity),
+            std::make_tuple(QString("-Inf"), QString("#-inf"), TokenKind::Keyword_NegativeInfinity)
         };
     }
 }
@@ -70,8 +66,9 @@ namespace
 TestSuite LexerTestsSuite()
 {
     TestSuite suite{};
-    suite.add(QString("SingleCharacter"), SingleCharacter, SingleCharacter_Data);
-    suite.add(QString("Keywords"), Keywords, Keywords_Data);
+    suite.add(QString("SingleCharacter"), Compare, SingleCharacter_Data);
+    suite.add(QString("Newline"), Compare, Newline_Data);
+    suite.add(QString("Keywords"), Compare, Keywords_Data);
 
     return suite;
 }

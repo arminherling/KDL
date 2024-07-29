@@ -71,48 +71,68 @@ namespace KDL
             auto current = PeekCurrentChar(source, currentIndex);
             switch (current.unicode())
             {
-                case '=':
+                case u'\r':     // Carriage Return
+                {
+                    const auto startIndex = currentIndex;
+                    currentIndex++;
+                    if (PeekCurrentChar(source, currentIndex) == QChar('\n'))
+                        currentIndex++;
+
+                    buffer.addToken(TokenKind::Newline, startIndex, currentIndex);
+                    break;
+                }
+                case u'\n':     // Line Feed
+                case u'\f':     // Form Feed
+                case u'\u0085': // Next Line
+                case u'\u2028': // Line Separator
+                case u'\u2029': // Paragraph Separator
+                {
+                    buffer.addToken(TokenKind::Newline, currentIndex, currentIndex + 1);
+                    currentIndex++;
+                    break;
+                }
+                case u'=':
                 {
                     buffer.addToken(TokenKind::Equal, currentIndex, currentIndex + 1);
                     currentIndex++;
                     break;
                 }
-                case '(':
+                case u'(':
                 {
                     buffer.addToken(TokenKind::OpenParenthesis, currentIndex, currentIndex + 1);
                     currentIndex++;
                     break;
                 }
-                case ')':
+                case u')':
                 {
                     buffer.addToken(TokenKind::CloseParenthesis, currentIndex, currentIndex + 1);
                     currentIndex++;
                     break;
                 }
-                case '{':
+                case u'{':
                 {
                     buffer.addToken(TokenKind::OpenBracket, currentIndex, currentIndex + 1);
                     currentIndex++;
                     break;
                 }
-                case '}':
+                case u'}':
                 {
                     buffer.addToken(TokenKind::CloseBracket, currentIndex, currentIndex + 1);
                     currentIndex++;
                     break;
                 }
-                case ';':
+                case u';':
                 {
                     buffer.addToken(TokenKind::Terminator, currentIndex, currentIndex + 1);
                     currentIndex++;
                     break;
                 }
-                case '#':
+                case u'#':
                 {
                     LexKeyword(buffer, source, currentIndex);
                     break;
                 }
-                case '\0':
+                case u'\0':
                 {
                     buffer.addToken(TokenKind::EndOfFile, currentIndex, currentIndex);
                     currentIndex++;

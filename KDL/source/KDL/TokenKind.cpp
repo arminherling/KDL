@@ -21,6 +21,8 @@ namespace KDL
                 return QString("OpenBracket");
             case TokenKind::CloseBracket:
                 return QString("CloseBracket");
+            case TokenKind::Newline:
+                return QString("Newline");
             case TokenKind::Terminator:
                 return QString("Terminator");
             case TokenKind::Keyword_True:

@@ -14,6 +14,7 @@ namespace KDL {
         CloseParenthesis,
         OpenBracket,
         CloseBracket,
+        Newline,
         Terminator,
         Keyword_True,
         Keyword_False,
