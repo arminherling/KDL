@@ -1,6 +1,6 @@
 #include <KDL/Lexer.h>
 
-namespace 
+namespace
 {
     using namespace KDL;
 
@@ -59,7 +59,7 @@ namespace
     };
 }
 
-namespace KDL 
+namespace KDL
 {
     TokenBuffer Lex(const QString& source) noexcept
     {
@@ -119,6 +119,18 @@ namespace KDL
                 {
                     buffer.addToken(TokenKind::CloseBracket, currentIndex, currentIndex + 1);
                     currentIndex++;
+                    break;
+                }
+                case u'/':
+                {
+                    if (PeekNextChar(source, currentIndex) == QChar('-'))
+                    {
+                        buffer.addToken(TokenKind::SlashDash, currentIndex, currentIndex + 2);
+                        currentIndex += 2;
+                        break;
+                    }
+
+                    // TODO handle comments
                     break;
                 }
                 case u';':

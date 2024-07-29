@@ -51,6 +51,12 @@ namespace
         };
     }
 
+    QList<std::tuple<QString, QString, TokenKind>> SlashDash_Data()
+    {
+        return {
+            std::make_tuple(QString("SlashDash"), QString("/-"), TokenKind::SlashDash),
+        };
+    }
     QList<std::tuple<QString, QString, TokenKind>> Keywords_Data()
     {
         return {
@@ -68,6 +74,7 @@ TestSuite LexerTestsSuite()
     TestSuite suite{};
     suite.add(QString("SingleCharacter"), Compare, SingleCharacter_Data);
     suite.add(QString("Newline"), Compare, Newline_Data);
+    suite.add(QString("SlashDash"), Compare, SlashDash_Data);
     suite.add(QString("Keywords"), Compare, Keywords_Data);
 
     return suite;
