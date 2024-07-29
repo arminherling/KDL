@@ -9,6 +9,36 @@ namespace
 {
     using namespace KDL;
 
+    void QtHandlesWhitespace(const QString& testName, const QString& source)
+    {
+        AalTest::IsTrue(source[0].isSpace());
+    }
+
+    QList<std::tuple<QString, QString>> Whitespace_Data()
+    {
+        return {
+            std::make_tuple(QString("Character Tabulation"), QString("\u0009")),
+            std::make_tuple(QString("Line Tabulation"), QString("\u000b")),
+            std::make_tuple(QString("Space"), QString("\u0020")),
+            std::make_tuple(QString("No-Break Space"), QString("\u00a0")),
+            std::make_tuple(QString("Ogham Space Mark"), QString("\u1680")),
+            std::make_tuple(QString("En Quad"), QString("\u2000")),
+            std::make_tuple(QString("Em Quad"), QString("\u2001")),
+            std::make_tuple(QString("En Space"), QString("\u2002")),
+            std::make_tuple(QString("Em Space"), QString("\u2003")),
+            std::make_tuple(QString("Three-Per-Em Space"), QString("\u2004")),
+            std::make_tuple(QString("Four-Per-Em Space"), QString("\u2005")),
+            std::make_tuple(QString("Six-Per-Em Space"), QString("\u2006")),
+            std::make_tuple(QString("Figure Space"), QString("\u2007")),
+            std::make_tuple(QString("Punctuation Space"), QString("\u2008")),
+            std::make_tuple(QString("Thin Space"), QString("\u2009")),
+            std::make_tuple(QString("Hair Space"), QString("\u200a")),
+            std::make_tuple(QString("Narrow No-Break Space"), QString("\u202f")),
+            std::make_tuple(QString("Medium Mathematical Space"), QString("\u205f")),
+            std::make_tuple(QString("Ideographic Space"), QString("\u3000")),
+        };
+    }
+
     void Compare(const QString& testName, const QString& source, TokenKind expectedKind)
     {
         const auto startTime = std::chrono::high_resolution_clock::now();
@@ -46,6 +76,7 @@ namespace
             std::make_tuple(QString("Heavy Equal Sign"), QString("\U0001f7f0"), TokenKind::Equal)
         };
     }
+
     QList<std::tuple<QString, QString, TokenKind>> Newline_Data()
     {
         return {
@@ -80,6 +111,7 @@ namespace
 TestSuite LexerTestsSuite()
 {
     TestSuite suite{};
+    suite.add(QString("Whitespace"), QtHandlesWhitespace, Whitespace_Data);
     suite.add(QString("SingleCharacter"), Compare, SingleCharacter_Data);
     suite.add(QString("Equal"), Compare, Equal_Data);
     suite.add(QString("Newline"), Compare, Newline_Data);
