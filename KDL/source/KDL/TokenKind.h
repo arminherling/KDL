@@ -9,12 +9,12 @@ namespace KDL {
     {
         Unknown,
         Error,
+        Newline,
         Equal,
         OpenParenthesis,
         CloseParenthesis,
         OpenBracket,
         CloseBracket,
-        Newline,
         Terminator,
         Keyword_True,
         Keyword_False,

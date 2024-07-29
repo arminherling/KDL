@@ -11,6 +11,8 @@ namespace KDL
                 return QString("Unknown");
             case TokenKind::Error:
                 return QString("Error");
+            case TokenKind::Newline:
+                return QString("Newline");
             case TokenKind::Equal:
                 return QString("Equal");
             case TokenKind::OpenParenthesis:
@@ -21,8 +23,6 @@ namespace KDL
                 return QString("OpenBracket");
             case TokenKind::CloseBracket:
                 return QString("CloseBracket");
-            case TokenKind::Newline:
-                return QString("Newline");
             case TokenKind::Terminator:
                 return QString("Terminator");
             case TokenKind::Keyword_True:
