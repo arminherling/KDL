@@ -11,3 +11,4 @@ namespace  KDL
         QStringView stringView;
     };
 }
+
