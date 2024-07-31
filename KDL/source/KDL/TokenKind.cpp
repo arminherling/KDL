@@ -29,6 +29,12 @@ namespace KDL
                 return QString("SlashDash");
             case Terminator:
                 return QString("Terminator");
+            case Number_Binary:
+                return QString("Number_Binary");
+            case Number_Octal:
+                return QString("Number_Octal");
+            case Number_Hexadecimal:
+                return QString("Number_Hexadecimal");
             case Number_Decimal:
                 return QString("Number_Decimal");
             case Identifier:

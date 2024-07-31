@@ -103,81 +103,109 @@ namespace
         };
     }
 
-    void Compare(const QString& testName, const QString& source, TokenKind expectedKind)
+    void Compare(const QString& testName, const QString& source, TokenKind expectedKind, i32 tokenCount)
     {
         const auto tokens = Lex(source);
         const auto token = tokens[0];
 
         AalTest::AreEqual(expectedKind, token.kind);
+        AalTest::AreEqual(tokenCount, tokens.size());
     }
 
-    QList<std::tuple<QString, QString, TokenKind>> SingleCharacter_Data()
+    QList<std::tuple<QString, QString, TokenKind, i32>> SingleCharacter_Data()
     {
         return {
-            { QString("OpenParenthesis"), QString("("), TokenKind::OpenParenthesis },
-            { QString("CloseParenthesis"), QString(")"), TokenKind::CloseParenthesis },
-            { QString("OpenBracket"), QString("{"), TokenKind::OpenBracket },
-            { QString("CloseBracket"), QString("}"), TokenKind::CloseBracket },
-            { QString("Semicolon"), QString(";"), TokenKind::Terminator },
+            { QString("OpenParenthesis"), QString("("), TokenKind::OpenParenthesis, 2 },
+            { QString("CloseParenthesis"), QString(")"), TokenKind::CloseParenthesis, 2 },
+            { QString("OpenBracket"), QString("{"), TokenKind::OpenBracket, 2 },
+            { QString("CloseBracket"), QString("}"), TokenKind::CloseBracket, 2 },
+            { QString("Semicolon"), QString(";"), TokenKind::Terminator, 2 },
 
-            { QString("Unknown"), QString("$"), TokenKind::Unknown },
-            { QString("EOF"), QString(""), TokenKind::EndOfFile },
-            { QString("EOF \\0"), QString("\0"), TokenKind::EndOfFile }
+            { QString("Unknown"), QString("$"), TokenKind::Unknown, 2 },
+            { QString("EOF"), QString(""), TokenKind::EndOfFile, 1 },
+            { QString("EOF \\0"), QString("\0"), TokenKind::EndOfFile, 1 }
         };
     }
 
-    QList<std::tuple<QString, QString, TokenKind>> Equal_Data()
+    QList<std::tuple<QString, QString, TokenKind, i32>> Equal_Data()
     {
         return {
-            { QString("Equal"), QString("="), TokenKind::Equal },
-            { QString("Small Equal Sign"), QString("\ufe66"), TokenKind::Equal },
-            { QString("Fullwidth Equal Sign"), QString("\uff1d"), TokenKind::Equal },
-            { QString("Heavy Equal Sign"), QString("\U0001f7f0"), TokenKind::Equal }
+            { QString("Equal"), QString("="), TokenKind::Equal, 2 },
+            { QString("Small Equal Sign"), QString("\ufe66"), TokenKind::Equal, 2 },
+            { QString("Fullwidth Equal Sign"), QString("\uff1d"), TokenKind::Equal, 2 },
+            { QString("Heavy Equal Sign"), QString("\U0001f7f0"), TokenKind::Equal, 2 }
         };
     }
 
-    QList<std::tuple<QString, QString, TokenKind>> Newline_Data()
+    QList<std::tuple<QString, QString, TokenKind, i32>> Newline_Data()
     {
         return {
-            { QString("Carriage Return"), QString("\r"), TokenKind::Newline },
-            { QString("Line Feed"), QString("\n"), TokenKind::Newline },
-            { QString("Carriage Return and Line Feed"), QString("\r\n"), TokenKind::Newline },
-            { QString("Next Line"), QString("\u0085"), TokenKind::Newline },
-            { QString("Form Feed"), QString("\f"), TokenKind::Newline },
-            { QString("Line Separator"), QString(QChar::SpecialCharacter::LineSeparator), TokenKind::Newline },
-            { QString("Paragraph Separator"), QString(QChar::SpecialCharacter::ParagraphSeparator), TokenKind::Newline }
+            { QString("Carriage Return"), QString("\r"), TokenKind::Newline, 2 },
+            { QString("Line Feed"), QString("\n"), TokenKind::Newline, 2 },
+            { QString("Carriage Return and Line Feed"), QString("\r\n"), TokenKind::Newline, 2 },
+            { QString("Next Line"), QString("\u0085"), TokenKind::Newline, 2 },
+            { QString("Form Feed"), QString("\f"), TokenKind::Newline, 2 },
+            { QString("Line Separator"), QString(QChar::SpecialCharacter::LineSeparator), TokenKind::Newline, 2 },
+            { QString("Paragraph Separator"), QString(QChar::SpecialCharacter::ParagraphSeparator), TokenKind::Newline, 2 }
         };
     }
 
-    QList<std::tuple<QString, QString, TokenKind>> SlashDash_Data()
+    QList<std::tuple<QString, QString, TokenKind, i32>> SlashDash_Data()
     {
         return {
-            { QString("SlashDash"), QString("/-"), TokenKind::SlashDash },
+            { QString("SlashDash"), QString("/-"), TokenKind::SlashDash, 2 },
         };
     }
 
-    QList<std::tuple<QString, QString, TokenKind>> Keywords_Data()
+    QList<std::tuple<QString, QString, TokenKind, i32>> Keywords_Data()
     {
         return {
-            { QString("True"), QString("#true"), TokenKind::Keyword_True },
-            { QString("False"), QString("#false"),  TokenKind::Keyword_False },
-            { QString("NaN"), QString("#nan"), TokenKind::Keyword_NaN },
-            { QString("Inf"), QString("#inf"),  TokenKind::Keyword_Infinity },
-            { QString("-Inf"), QString("#-inf"), TokenKind::Keyword_NegativeInfinity }
+            { QString("True"), QString("#true"), TokenKind::Keyword_True, 2 },
+            { QString("False"), QString("#false"),  TokenKind::Keyword_False, 2 },
+            { QString("NaN"), QString("#nan"), TokenKind::Keyword_NaN, 2 },
+            { QString("Inf"), QString("#inf"),  TokenKind::Keyword_Infinity, 2 },
+            { QString("-Inf"), QString("#-inf"), TokenKind::Keyword_NegativeInfinity, 2 }
         };
     }
 
-    QList<std::tuple<QString, QString, TokenKind>> Identifier_Data()
+    QList<std::tuple<QString, QString, TokenKind, i32>> Identifier_Data()
     {
         return {
-            { QString(), QString("node"), TokenKind::Identifier}
+            { QString(), QString("node"), TokenKind::Identifier, 2}
         };
     }
 
-    QList<std::tuple<QString, QString, TokenKind>> Number_Data()
+    QList<std::tuple<QString, QString, TokenKind, i32>> Number_Data()
     {
         return {
-            { QString(), QString("1"), TokenKind::Number_Decimal }
+            { QString(), QString("0b0"), TokenKind::Number_Binary, 2 },
+            { QString(), QString("0b1"), TokenKind::Number_Binary, 2 },
+            { QString(), QString("0b101"), TokenKind::Number_Binary, 2 },
+            { QString(), QString("0b1_0_1"), TokenKind::Number_Binary, 2 },
+
+            { QString(), QString("0o0"), TokenKind::Number_Octal, 2 },
+            { QString(), QString("0o7"), TokenKind::Number_Octal, 2 },
+            { QString(), QString("0o71"), TokenKind::Number_Octal, 2 },
+            { QString(), QString("0o1_0_7"), TokenKind::Number_Octal, 2 },
+
+            { QString(), QString("0x0"), TokenKind::Number_Hexadecimal, 2 },
+            { QString(), QString("0xA"), TokenKind::Number_Hexadecimal, 2 },
+            { QString(), QString("0x01F"), TokenKind::Number_Hexadecimal, 2 },
+            { QString(), QString("0x1_0_F"), TokenKind::Number_Hexadecimal, 2 },
+            { QString(), QString("0xABCDEF0123456789abcdef"), TokenKind::Number_Hexadecimal, 2 },
+
+            { QString(), QString("1"), TokenKind::Number_Decimal, 2 },
+            { QString(), QString("10"), TokenKind::Number_Decimal, 2 },
+            { QString(), QString("1_0"), TokenKind::Number_Decimal, 2 },
+            { QString(), QString("1.0"), TokenKind::Number_Decimal, 2 },
+            { QString(), QString("1_0.0_0"), TokenKind::Number_Decimal, 2 },
+            { QString(), QString("1_0_0.0_0_0"), TokenKind::Number_Decimal, 2 },
+
+            { QString(), QString("1.23e5"), TokenKind::Number_Decimal, 2 },
+            { QString(), QString("1.23E+1000"), TokenKind::Number_Decimal, 2 },
+            { QString(), QString("1.23E-1000"), TokenKind::Number_Decimal, 2 },
+            { QString(), QString("1.23E-10E-00"), TokenKind::Number_Decimal, 2 },
+            { QString(), QString("1.0E10e10"), TokenKind::Number_Decimal, 2 },
         };
     }
 }
@@ -191,7 +219,7 @@ TestSuite LexerTestsSuite()
     suite.add(QString("Equal"), Compare, Equal_Data);
     suite.add(QString("Newline"), Compare, Newline_Data);
     suite.add(QString("SlashDash"), Compare, SlashDash_Data);
-    //suite.add(QString("Number"), Compare, Number_Data);
+    suite.add(QString("Number"), Compare, Number_Data);
     suite.add(QString("Identifier"), Compare, Identifier_Data);
     suite.add(QString("Keywords"), Compare, Keywords_Data);
 
