@@ -117,6 +117,7 @@ namespace KDL
                     {
                         buffer.addToken(TokenKind::Equal, currentIndex, currentIndex + 2);
                         currentIndex += 2;
+                        break;
                     }
                     goto default_case;
                 }
