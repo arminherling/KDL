@@ -54,6 +54,21 @@ namespace
             tokenBuffer.addToken(TokenKind::Unknown, startIndex, currentIndex);
         }
     };
+
+    static auto TryLexIdentifier(TokenBuffer& tokenBuffer, const QString& source, i32& currentIndex) noexcept
+    {
+        if (!PeekCurrentChar(source, currentIndex).isLetter())
+            return false;
+
+        const auto startIndex = currentIndex;
+        while (PeekCurrentChar(source, currentIndex).isLetter())
+        {
+            currentIndex++;
+        }
+        tokenBuffer.addToken(TokenKind::Identifier, startIndex, currentIndex);
+
+        return true;
+    }
 }
 
 namespace KDL
@@ -158,11 +173,18 @@ namespace KDL
                     currentIndex++;
                     return buffer;
                 }
-                default:
+                default: 
+                {
                 default_case:
+                    if (TryLexIdentifier(buffer, source, currentIndex))
+                    {
+                        break;
+                    }
+
                     buffer.addToken(TokenKind::Unknown, currentIndex, currentIndex + 1);
                     currentIndex++;
                     break;
+                }
             }
         }
 

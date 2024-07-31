@@ -7,37 +7,43 @@ namespace KDL
     {
         switch (kind)
         {
-            case TokenKind::Unknown:
+            using enum TokenKind;
+
+            case Unknown:
                 return QString("Unknown");
-            case TokenKind::Error:
+            case Error:
                 return QString("Error");
-            case TokenKind::Newline:
+            case Newline:
                 return QString("Newline");
-            case TokenKind::Equal:
+            case Equal:
                 return QString("Equal");
-            case TokenKind::OpenParenthesis:
+            case OpenParenthesis:
                 return QString("OpenParenthesis");
-            case TokenKind::CloseParenthesis:
+            case CloseParenthesis:
                 return QString("CloseParenthesis");
-            case TokenKind::OpenBracket:
+            case OpenBracket:
                 return QString("OpenBracket");
-            case TokenKind::CloseBracket:
+            case CloseBracket:
                 return QString("CloseBracket");
-            case TokenKind::SlashDash:
+            case SlashDash:
                 return QString("SlashDash");
-            case TokenKind::Terminator:
+            case Terminator:
                 return QString("Terminator");
-            case TokenKind::Keyword_True:
+            case Number_Decimal:
+                return QString("Number_Decimal");
+            case Identifier:
+                return QString("Identifier");
+            case Keyword_True:
                 return QString("Keyword_True");
-            case TokenKind::Keyword_False:
+            case Keyword_False:
                 return QString("Keyword_False");
-            case TokenKind::Keyword_NaN:
+            case Keyword_NaN:
                 return QString("Keyword_NaN");
-            case TokenKind::Keyword_Infinity:
+            case Keyword_Infinity:
                 return QString("Keyword_Infinity");
-            case TokenKind::Keyword_NegativeInfinity:
+            case Keyword_NegativeInfinity:
                 return QString("Keyword_NegativeInfinity");
-            case TokenKind::EndOfFile:
+            case EndOfFile:
                 return QString("EndOfFile");
             default:
                 TODO("String for TokenKind value was not defined yet");
