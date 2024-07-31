@@ -1,4 +1,5 @@
 #include <KDL/Lexer.h>
+#include <functional>
 
 namespace
 {
@@ -31,6 +32,32 @@ namespace
         return (nextChar >= QChar('0') && nextChar <= QChar('9'))
             || (nextChar >= QChar('a') && nextChar <= QChar('f'))
             || (nextChar >= QChar('A') && nextChar <= QChar('F'));
+    }
+
+    static auto NumberType(const QChar c) noexcept
+    {
+        if (c == 'b') 
+            return TokenKind::Number_Binary;
+        if (c == 'o') 
+            return TokenKind::Number_Octal;
+        if (c == 'x') 
+            return TokenKind::Number_Hexadecimal;
+        return TokenKind::Number_Decimal;
+    }
+
+    static std::function<bool(const QChar)> NumberPredicate(TokenKind type)
+    {
+        switch (type)
+        {
+            case TokenKind::Number_Binary: 
+                return [](const QChar c) {return IsBinary(c); };
+            case TokenKind::Number_Octal: 
+                return [](const QChar c) {return IsOctal(c); };
+            case TokenKind::Number_Hexadecimal: 
+                return [](const QChar c) {return IsHexadecimal(c); };
+            default:
+                __debugbreak();
+        }
     }
 
     static auto LexKeyword(TokenBuffer& tokenBuffer, const QString& source, i32& currentIndex) noexcept
@@ -95,18 +122,22 @@ namespace
             return false;
 
         nextChar = PeekNextChar(source, currentIndex);
-        if (nextChar == 'b') // Binary
+
+        auto numberType = NumberType(nextChar);
+        if (numberType != TokenKind::Number_Decimal)
         {
+            auto predicate = NumberPredicate(numberType);
+
             currentIndex += 2;
             currentChar = PeekCurrentChar(source, currentIndex);
 
-            while (currentChar == '0' || currentChar == '1')
+            while (predicate(currentChar))
             {
                 currentIndex++;
                 currentChar = PeekCurrentChar(source, currentIndex);
 
                 nextChar = PeekNextChar(source, currentIndex);
-                while (currentChar == '_' && IsBinary(nextChar))
+                while (currentChar == '_' && predicate(nextChar))
                 {
                     currentIndex += 2;
                     currentChar = PeekCurrentChar(source, currentIndex);
@@ -114,51 +145,7 @@ namespace
                 }
             }
 
-            tokenBuffer.addToken(TokenKind::Number_Binary, startIndex, currentIndex);
-            return true;
-        }
-        else if (nextChar == 'o') // Octal
-        {
-            currentIndex += 2;
-            currentChar = PeekCurrentChar(source, currentIndex);
-
-            while (IsOctal(currentChar))
-            {
-                currentIndex++;
-                currentChar = PeekCurrentChar(source, currentIndex);
-
-                auto nextChar = PeekNextChar(source, currentIndex);
-                while (currentChar == '_' && (IsOctal(nextChar)))
-                {
-                    currentIndex += 2;
-                    currentChar = PeekCurrentChar(source, currentIndex);
-                    nextChar = PeekNextChar(source, currentIndex);
-                }
-            }
-
-            tokenBuffer.addToken(TokenKind::Number_Octal, startIndex, currentIndex);
-            return true;
-        }
-        else if (nextChar == 'x') // Hexadecimal
-        {
-            currentIndex += 2;
-            currentChar = PeekCurrentChar(source, currentIndex);
-
-            while (IsHexadecimal(currentChar))
-            {
-                currentIndex++;
-                currentChar = PeekCurrentChar(source, currentIndex);
-
-                auto nextChar = PeekNextChar(source, currentIndex);
-                while (currentChar == '_' && (IsHexadecimal(nextChar)))
-                {
-                    currentIndex += 2;
-                    currentChar = PeekCurrentChar(source, currentIndex);
-                    nextChar = PeekNextChar(source, currentIndex);
-                }
-            }
-
-            tokenBuffer.addToken(TokenKind::Number_Hexadecimal, startIndex, currentIndex);
+            tokenBuffer.addToken(numberType, startIndex, currentIndex);
             return true;
         }
         else  // Decimal
