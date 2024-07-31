@@ -16,7 +16,7 @@ namespace
 
     [[nodiscard]] static auto PeekCurrentChar(const QString& source, i32 currentIndex) noexcept { return PeekChar(source, currentIndex, 0); };
     [[nodiscard]] static auto PeekNextChar(const QString& source, i32 currentIndex) noexcept { return PeekChar(source, currentIndex, 1); };
-    
+
     [[nodiscard]] static auto IsBinary(const QChar& nextChar) noexcept
     {
         return (nextChar == QChar('0') || nextChar == QChar('1'));
@@ -36,11 +36,11 @@ namespace
 
     static auto NumberType(const QChar c) noexcept
     {
-        if (c == 'b') 
+        if (c == 'b')
             return TokenKind::Number_Binary;
-        if (c == 'o') 
+        if (c == 'o')
             return TokenKind::Number_Octal;
-        if (c == 'x') 
+        if (c == 'x')
             return TokenKind::Number_Hexadecimal;
         return TokenKind::Number_Decimal;
     }
@@ -49,12 +49,14 @@ namespace
     {
         switch (type)
         {
-            case TokenKind::Number_Binary: 
+            case TokenKind::Number_Binary:
                 return [](const QChar c) {return IsBinary(c); };
-            case TokenKind::Number_Octal: 
+            case TokenKind::Number_Octal:
                 return [](const QChar c) {return IsOctal(c); };
-            case TokenKind::Number_Hexadecimal: 
+            case TokenKind::Number_Hexadecimal:
                 return [](const QChar c) {return IsHexadecimal(c); };
+            case TokenKind::Number_Decimal:
+                return [](const QChar c) {return c.isNumber(); };
             default:
                 __debugbreak();
         }
@@ -122,66 +124,45 @@ namespace
             return false;
 
         nextChar = PeekNextChar(source, currentIndex);
+        const auto numberType = NumberType(nextChar);
+        const auto predicate = NumberPredicate(numberType);
 
-        auto numberType = NumberType(nextChar);
-        if (numberType != TokenKind::Number_Decimal)
-        {
-            auto predicate = NumberPredicate(numberType);
-
-            currentIndex += 2;
-            currentChar = PeekCurrentChar(source, currentIndex);
-
-            while (predicate(currentChar))
+        auto matchNumbersAndUnderscores = [&]()
             {
-                currentIndex++;
                 currentChar = PeekCurrentChar(source, currentIndex);
-
-                nextChar = PeekNextChar(source, currentIndex);
-                while (currentChar == '_' && predicate(nextChar))
-                {
-                    currentIndex += 2;
-                    currentChar = PeekCurrentChar(source, currentIndex);
-                    nextChar = PeekNextChar(source, currentIndex);
-                }
-            }
-
-            tokenBuffer.addToken(numberType, startIndex, currentIndex);
-            return true;
-        }
-        else  // Decimal
-        {
-            while (currentChar.isNumber())
-            {
-                currentIndex++;
-                currentChar = PeekCurrentChar(source, currentIndex);
-
-                auto nextChar = PeekNextChar(source, currentIndex);
-                while (currentChar == '_' && nextChar.isNumber())
-                {
-                    currentIndex += 2;
-                    currentChar = PeekCurrentChar(source, currentIndex);
-                    nextChar = PeekNextChar(source, currentIndex);
-                }
-            }
-
-            if (currentChar == '.' && PeekNextChar(source, currentIndex).isNumber())
-            {
-                currentIndex++;
-
-                currentChar = PeekCurrentChar(source, currentIndex);
-                while (currentChar.isNumber())
+                while (predicate(currentChar))
                 {
                     currentIndex++;
                     currentChar = PeekCurrentChar(source, currentIndex);
 
-                    auto nextChar = PeekNextChar(source, currentIndex);
-                    while (currentChar == '_' && nextChar.isNumber())
+                    nextChar = PeekNextChar(source, currentIndex);
+                    while (currentChar == '_' && predicate(nextChar))
                     {
                         currentIndex += 2;
                         currentChar = PeekCurrentChar(source, currentIndex);
                         nextChar = PeekNextChar(source, currentIndex);
                     }
                 }
+            };
+
+        if (numberType != TokenKind::Number_Decimal)
+        {
+            currentIndex += 2;
+
+            matchNumbersAndUnderscores();
+
+            tokenBuffer.addToken(numberType, startIndex, currentIndex);
+            return true;
+        }
+        else  // Decimal
+        {
+            matchNumbersAndUnderscores();
+
+            if (currentChar == '.' && PeekNextChar(source, currentIndex).isNumber())
+            {
+                currentIndex++;
+
+                matchNumbersAndUnderscores();
             }
 
             nextChar = PeekNextChar(source, currentIndex);
@@ -196,20 +177,7 @@ namespace
                     currentIndex++;
                 }
 
-                currentChar = PeekCurrentChar(source, currentIndex);
-                while (currentChar.isNumber())
-                {
-                    currentIndex++;
-                    currentChar = PeekCurrentChar(source, currentIndex);
-
-                    auto nextChar = PeekNextChar(source, currentIndex);
-                    while (currentChar == '_' && nextChar.isNumber())
-                    {
-                        currentIndex += 2;
-                        currentChar = PeekCurrentChar(source, currentIndex);
-                        nextChar = PeekNextChar(source, currentIndex);
-                    }
-                }
+                matchNumbersAndUnderscores();
             }
 
             tokenBuffer.addToken(TokenKind::Number_Decimal, startIndex, currentIndex);
