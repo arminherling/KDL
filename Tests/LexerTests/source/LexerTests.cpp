@@ -3,11 +3,75 @@
 #include <KDL/Lexer.h>
 #include <KDL/TokenKind.h>
 #include <KDL/TokenBuffer.h>
+
+#include <QDirIterator>
+#include <QFile>
+
 #include <iostream>
 
 namespace
 {
     using namespace KDL;
+
+    void NoUnknownTokens(const QString& fileName, const QString& filePath)
+    {
+        auto file = QFile(filePath);
+        const auto isOpen = file.open(QIODevice::ReadOnly | QIODevice::Text);
+        AalTest::IsTrue(isOpen);
+        QTextStream reader(&file);
+        const auto input = reader.readAll();
+
+        const auto tokens = Lex(input);
+        for (size_t i = 0; i < tokens.size(); i++)
+        {
+            const auto token = tokens[i];
+            if (token.kind == TokenKind::Unknown)
+                AalTest::Fail();
+        }
+    }
+
+    QList<std::tuple<QString, QString>> NoUnknownTokens_Data()
+    {
+        auto inputDir = QDir(QString("../../Tests/Data/Input"));
+        auto inputAbsolutePath = inputDir.absolutePath();
+        auto expectedDir = QDir(QString("../../Tests/Data/Expected"));
+        auto expectedAbsolutePath = expectedDir.absolutePath();
+        auto exampleDir = QDir(QString("../../Tests/Data/Examples"));
+        auto exampleAbsolutePath = inputDir.absolutePath();
+
+        QList<std::tuple<QString, QString>> data{};
+
+        QDirIterator inputIt(inputAbsolutePath, QStringList() << QString("*.kdl"), QDir::Filter::Files);
+        while (inputIt.hasNext())
+        {
+            auto file = inputIt.nextFileInfo();
+            auto fileName = file.fileName();
+            auto filePath = file.absoluteFilePath();
+
+            data.append(std::make_tuple(fileName, filePath));
+        }
+
+        QDirIterator expectedIt(expectedAbsolutePath, QStringList() << QString("*.kdl"), QDir::Filter::Files);
+        while (expectedIt.hasNext())
+        {
+            auto file = expectedIt.nextFileInfo();
+            auto fileName = file.fileName();
+            auto filePath = file.absoluteFilePath();
+
+            data.append(std::make_tuple(fileName, filePath));
+        }
+
+        QDirIterator exampleIt(exampleAbsolutePath, QStringList() << QString("*.kdl"), QDir::Filter::Files);
+        while (exampleIt.hasNext())
+        {
+            auto file = exampleIt.nextFileInfo();
+            auto fileName = file.fileName();
+            auto filePath = file.absoluteFilePath();
+
+            data.append(std::make_tuple(fileName, filePath));
+        }
+        return data;
+    }
 
     void QtHandlesWhitespace(const QString& testName, const QString& source)
     {
@@ -41,13 +105,8 @@ namespace
 
     void Compare(const QString& testName, const QString& source, TokenKind expectedKind)
     {
-        const auto startTime = std::chrono::high_resolution_clock::now();
-
         const auto tokens = Lex(source);
         const auto token = tokens[0];
-
-        const auto endTime = std::chrono::high_resolution_clock::now();
-        std::cout << "      Lex(): " << Stringify(endTime - startTime).toStdString() << '\n';
 
         AalTest::AreEqual(expectedKind, token.kind);
     }
@@ -96,6 +155,7 @@ namespace
             std::make_tuple(QString("SlashDash"), QString("/-"), TokenKind::SlashDash),
         };
     }
+
     QList<std::tuple<QString, QString, TokenKind>> Keywords_Data()
     {
         return {
@@ -111,6 +171,7 @@ namespace
 TestSuite LexerTestsSuite()
 {
     TestSuite suite{};
+    suite.add(QString("NoUnknownTokens"), NoUnknownTokens, NoUnknownTokens_Data);
     suite.add(QString("Whitespace"), QtHandlesWhitespace, Whitespace_Data);
     suite.add(QString("SingleCharacter"), Compare, SingleCharacter_Data);
     suite.add(QString("Equal"), Compare, Equal_Data);

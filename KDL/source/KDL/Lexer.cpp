@@ -32,30 +32,27 @@ namespace
         if (keyword == QString("#true"))
         {
             tokenBuffer.addToken(TokenKind::Keyword_True, startIndex, currentIndex);
-            return;
         }
         else if (keyword == QString("#false"))
         {
             tokenBuffer.addToken(TokenKind::Keyword_False, startIndex, currentIndex);
-            return;
         }
         else if (keyword == QString("#inf"))
         {
             tokenBuffer.addToken(TokenKind::Keyword_Infinity, startIndex, currentIndex);
-            return;
         }
         else if (keyword == QString("#-inf"))
         {
             tokenBuffer.addToken(TokenKind::Keyword_NegativeInfinity, startIndex, currentIndex);
-            return;
         }
         else if (keyword == QString("#nan"))
         {
             tokenBuffer.addToken(TokenKind::Keyword_NaN, startIndex, currentIndex);
-            return;
         }
-
-        tokenBuffer.addToken(TokenKind::Unknown, startIndex, currentIndex);
+        else
+        {
+            tokenBuffer.addToken(TokenKind::Unknown, startIndex, currentIndex);
+        }
     };
 }
 
@@ -106,7 +103,7 @@ namespace KDL
                         buffer.addToken(TokenKind::Equal, currentIndex, currentIndex + 2);
                         currentIndex += 2;
                     }
-                    break;
+                    goto default_case;
                 }
                 case u'(':
                 {
@@ -142,7 +139,7 @@ namespace KDL
                     }
 
                     // TODO handle comments
-                    break;
+                    goto default_case;
                 }
                 case u';':
                 {
@@ -162,6 +159,7 @@ namespace KDL
                     return buffer;
                 }
                 default:
+                default_case:
                     buffer.addToken(TokenKind::Unknown, currentIndex, currentIndex + 1);
                     currentIndex++;
                     break;
