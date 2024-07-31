@@ -37,7 +37,7 @@ namespace
         auto expectedDir = QDir(QString("../../Tests/Data/Expected"));
         auto expectedAbsolutePath = expectedDir.absolutePath();
         auto exampleDir = QDir(QString("../../Tests/Data/Examples"));
-        auto exampleAbsolutePath = inputDir.absolutePath();
+        auto exampleAbsolutePath = exampleDir.absolutePath();
 
         QList<std::tuple<QString, QString>> data{};
 
