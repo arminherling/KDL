@@ -9,7 +9,7 @@ namespace
     {
         const auto charIndex = currentIndex + offset;
         if (charIndex >= source.length())
-            return QChar('\0');
+            return QChar(u'\0');
 
         return source[charIndex];
     };
@@ -19,29 +19,32 @@ namespace
 
     [[nodiscard]] static auto IsBinary(const QChar& nextChar) noexcept
     {
-        return (nextChar == QChar('0') || nextChar == QChar('1'));
+        return (nextChar == QChar(u'0') || nextChar == QChar(u'1'));
     }
 
     [[nodiscard]] static auto IsOctal(const QChar& nextChar) noexcept
     {
-        return (nextChar >= QChar('0') && nextChar <= QChar('7'));
+        return (nextChar >= QChar(u'0') && nextChar <= QChar(u'7'));
     }
 
     [[nodiscard]] static auto IsHexadecimal(const QChar& nextChar) noexcept
     {
-        return (nextChar >= QChar('0') && nextChar <= QChar('9'))
-            || (nextChar >= QChar('a') && nextChar <= QChar('f'))
-            || (nextChar >= QChar('A') && nextChar <= QChar('F'));
+        return (nextChar >= QChar(u'0') && nextChar <= QChar(u'9'))
+            || (nextChar >= QChar(u'a') && nextChar <= QChar(u'f'))
+            || (nextChar >= QChar(u'A') && nextChar <= QChar(u'F'));
     }
 
-    static auto NumberType(const QChar c) noexcept
+    static auto NumberType(const QChar c, const QChar n) noexcept
     {
-        if (c == 'b')
-            return TokenKind::Number_Binary;
-        if (c == 'o')
-            return TokenKind::Number_Octal;
-        if (c == 'x')
-            return TokenKind::Number_Hexadecimal;
+        if (c == QChar(u'0'))
+        {
+            if (n == QChar(u'b'))
+                return TokenKind::Number_Binary;
+            if (n == QChar(u'o'))
+                return TokenKind::Number_Octal;
+            if (n == QChar(u'x'))
+                return TokenKind::Number_Hexadecimal;
+        }
         return TokenKind::Number_Decimal;
     }
 
@@ -107,7 +110,7 @@ namespace
 
         auto currentChar = PeekCurrentChar(source, currentIndex);
         auto nextChar = PeekNextChar(source, currentIndex);
-        if (currentChar == '+' || currentChar == '-')
+        if (currentChar == QChar(u'+') || currentChar == QChar(u'-'))
         {
             if (nextChar.isNumber())
             {
@@ -124,7 +127,7 @@ namespace
             return false;
 
         nextChar = PeekNextChar(source, currentIndex);
-        const auto numberType = NumberType(nextChar);
+        const auto numberType = NumberType(currentChar, nextChar);
         const auto predicate = NumberPredicate(numberType);
 
         auto matchNumbersAndUnderscores = [&]()
@@ -136,7 +139,7 @@ namespace
                     currentChar = PeekCurrentChar(source, currentIndex);
 
                     nextChar = PeekNextChar(source, currentIndex);
-                    while (currentChar == '_' && predicate(nextChar))
+                    while (currentChar == QChar(u'_') && predicate(nextChar))
                     {
                         currentIndex += 2;
                         currentChar = PeekCurrentChar(source, currentIndex);
@@ -158,7 +161,7 @@ namespace
         {
             matchNumbersAndUnderscores();
 
-            if (currentChar == '.' && PeekNextChar(source, currentIndex).isNumber())
+            if (currentChar == QChar(u'.') && PeekNextChar(source, currentIndex).isNumber())
             {
                 currentIndex++;
 
@@ -166,9 +169,9 @@ namespace
             }
 
             nextChar = PeekNextChar(source, currentIndex);
-            while (currentChar.toLower() == 'e' && (nextChar == '+' || nextChar == '-' || nextChar.isNumber()))
+            while (currentChar.toLower() == QChar(u'e') && (nextChar == QChar(u'+') || nextChar == QChar(u'-') || nextChar.isNumber()))
             {
-                if (nextChar == '+' || nextChar == '-')
+                if (nextChar == QChar(u'+') || nextChar == QChar(u'-'))
                 {
                     currentIndex += 2;
                 }
