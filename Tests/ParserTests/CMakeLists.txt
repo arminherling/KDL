@@ -3,6 +3,8 @@ project(ParserTests)
 file(GLOB SOURCES CONFIGURE_DEPENDS "${PROJECT_SOURCE_DIR}/source/*.cpp")
 file(GLOB HEADERS CONFIGURE_DEPENDS "${PROJECT_SOURCE_DIR}/source/*.h")
 
+set(CMAKE_VS_JUST_MY_CODE_DEBUGGING ON)
+
 qt_add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS})
 
 target_link_libraries(${PROJECT_NAME} PRIVATE KDL AalTest Qt6::Core)

@@ -1,5 +1,7 @@
 project(AllInOne)
 
+set(CMAKE_VS_JUST_MY_CODE_DEBUGGING ON)
+
 qt_add_executable(
     ${PROJECT_NAME} 
     "${PROJECT_SOURCE_DIR}/../LexerTests/source/LexerTests.cpp"
