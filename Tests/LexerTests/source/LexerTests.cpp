@@ -210,9 +210,9 @@ namespace
     }
 }
 
-TestSuite LexerTestsSuite()
+AalTest::TestSuite LexerTestsSuite()
 {
-    TestSuite suite{};
+    AalTest::TestSuite suite{};
     suite.add(QString("NoUnknownTokens"), NoUnknownTokens, NoUnknownTokens_Data);
     suite.add(QString("Whitespace"), QtHandlesWhitespace, Whitespace_Data);
     suite.add(QString("SingleCharacter"), Compare, SingleCharacter_Data);

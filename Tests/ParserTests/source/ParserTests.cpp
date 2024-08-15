@@ -59,9 +59,9 @@ namespace
     }
 }
 
-TestSuite ParserTestsSuite()
+AalTest::TestSuite ParserTestsSuite()
 {
-    TestSuite suite{};
+    AalTest::TestSuite suite{};
 
     suite.add(QString("Examples"), Examples, Examples_Data);
     suite.add(QString("FileTests"), FileTests, FileTests_Data);

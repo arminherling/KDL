@@ -3,7 +3,7 @@
 
 int main()
 {
-    TestRunner runner{};
+    AalTest::TestRunner runner{};
     auto testSuites = LexerTestsSuite();
 
     runner.run(testSuites);
