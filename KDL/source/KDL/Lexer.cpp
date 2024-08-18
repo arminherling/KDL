@@ -214,7 +214,7 @@ namespace
         return false;
     }
 
-    static auto TryLexDottedIdentifier(TokenBuffer& tokenBuffer, const QString& source, i32& currentIndex) noexcept
+    static auto TryLexSignedIdentifier(TokenBuffer& tokenBuffer, const QString& source, i32& currentIndex) noexcept
     {
         const auto startIndex = currentIndex;
         if (!IsSign(PeekCurrentChar(source, currentIndex)))
@@ -242,7 +242,7 @@ namespace
     {
         if (IsSign(PeekCurrentChar(source, currentIndex)))
         {
-            return TryLexDottedIdentifier(tokenBuffer, source, currentIndex);
+            return TryLexSignedIdentifier(tokenBuffer, source, currentIndex);
         }
 
         if (!PeekCurrentChar(source, currentIndex).isLetter())
