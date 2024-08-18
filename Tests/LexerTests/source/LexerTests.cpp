@@ -172,14 +172,17 @@ namespace
             { QString("False"), QString("#false"),  TokenKind::Keyword_False, 2 },
             { QString("NaN"), QString("#nan"), TokenKind::Keyword_NaN, 2 },
             { QString("Inf"), QString("#inf"),  TokenKind::Keyword_Infinity, 2 },
-            { QString("-Inf"), QString("#-inf"), TokenKind::Keyword_NegativeInfinity, 2 }
+            { QString("-Inf"), QString("#-inf"), TokenKind::Keyword_NegativeInfinity, 2 },
+            { QString("Null"), QString("#null"), TokenKind::Keyword_Null, 2 },
         };
     }
 
     QList<std::tuple<QString, QString, TokenKind, i32>> Identifier_Data()
     {
         return {
-            { QString(), QString("node"), TokenKind::Identifier, 2}
+            { QString(), QString("node"), TokenKind::Identifier, 2},
+            { QString(), QString("+node"), TokenKind::Identifier, 2 },
+            { QString(), QString("-node"), TokenKind::Identifier, 2},
         };
     }
 
