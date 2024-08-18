@@ -157,6 +157,14 @@ namespace
         };
     }
 
+    QList<std::tuple<QString, QString, TokenKind, i32>> Sign_Data()
+    {
+        return {
+            { QString("-"), QString("-"), TokenKind::Identifier, 2 },
+            { QString("+"), QString("+"), TokenKind::Identifier, 2 },
+        };
+    }
+
     QList<std::tuple<QString, QString, TokenKind, i32>> Keywords_Data()
     {
         return {
@@ -219,9 +227,10 @@ AalTest::TestSuite LexerTestsSuite()
     suite.add(QString("Equal"), Compare, Equal_Data);
     suite.add(QString("Newline"), Compare, Newline_Data);
     suite.add(QString("SlashDash"), Compare, SlashDash_Data);
+    suite.add(QString("Sign"), Compare, Sign_Data);
+    suite.add(QString("Keywords"), Compare, Keywords_Data);
     suite.add(QString("Number"), Compare, Number_Data);
     suite.add(QString("Identifier"), Compare, Identifier_Data);
-    suite.add(QString("Keywords"), Compare, Keywords_Data);
 
     return suite;
 }

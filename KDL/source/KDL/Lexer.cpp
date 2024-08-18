@@ -33,6 +33,26 @@ namespace
             || (nextChar >= QChar(u'a') && nextChar <= QChar(u'f'))
             || (nextChar >= QChar(u'A') && nextChar <= QChar(u'F'));
     }
+    
+    [[nodiscard]] static auto IsSign(const QChar& nextChar) noexcept
+    {
+        return (nextChar == QChar(u'-') || nextChar == QChar(u'+'));
+    }
+
+    [[nodiscard]] static auto IsDot(const QChar& nextChar) noexcept
+    {
+        return (nextChar == QChar(u'.'));
+    }
+
+    [[nodiscard]] static auto IsDigit(const QChar& nextChar) noexcept
+    {
+        return nextChar.isNumber();
+    }
+
+    [[nodiscard]] static auto IsIdentifierChar(const QChar& nextChar) noexcept
+    {
+        return nextChar.isLetter();
+    }
 
     static auto NumberType(const QChar c, const QChar n) noexcept
     {
@@ -114,7 +134,7 @@ namespace
 
         auto currentChar = PeekCurrentChar(source, currentIndex);
         auto nextChar = PeekNextChar(source, currentIndex);
-        if (currentChar == QChar(u'+') || currentChar == QChar(u'-'))
+        if (IsSign(currentChar))
         {
             if (nextChar.isNumber())
             {
@@ -194,8 +214,37 @@ namespace
         return false;
     }
 
+    static auto TryLexDottedIdentifier(TokenBuffer& tokenBuffer, const QString& source, i32& currentIndex) noexcept
+    {
+        const auto startIndex = currentIndex;
+        if (!IsSign(PeekCurrentChar(source, currentIndex)))
+            return false;
+
+        currentIndex++;
+
+        auto currentChar = PeekCurrentChar(source, currentIndex);
+        if (!IsIdentifierChar(currentChar) || IsDigit(currentChar) || IsDot(currentChar))
+        {
+            tokenBuffer.addToken(TokenKind::Identifier, startIndex, currentIndex);
+            return true;
+        }
+
+        while (IsIdentifierChar(PeekCurrentChar(source, currentIndex)))
+        {
+            currentIndex++;
+        }
+        tokenBuffer.addToken(TokenKind::Identifier, startIndex, currentIndex);
+
+        return true;
+    }
+
     static auto TryLexIdentifier(TokenBuffer& tokenBuffer, const QString& source, i32& currentIndex) noexcept
     {
+        if (IsSign(PeekCurrentChar(source, currentIndex)))
+        {
+            return TryLexDottedIdentifier(tokenBuffer, source, currentIndex);
+        }
+
         if (!PeekCurrentChar(source, currentIndex).isLetter())
             return false;
 
