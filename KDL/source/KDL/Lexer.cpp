@@ -86,6 +86,10 @@ namespace
         {
             tokenBuffer.addToken(TokenKind::Keyword_False, startIndex, currentIndex);
         }
+        else if (keyword == QString("#nan"))
+        {
+            tokenBuffer.addToken(TokenKind::Keyword_NaN, startIndex, currentIndex);
+        }
         else if (keyword == QString("#inf"))
         {
             tokenBuffer.addToken(TokenKind::Keyword_Infinity, startIndex, currentIndex);
@@ -94,9 +98,9 @@ namespace
         {
             tokenBuffer.addToken(TokenKind::Keyword_NegativeInfinity, startIndex, currentIndex);
         }
-        else if (keyword == QString("#nan"))
+        else if (keyword == QString("#null"))
         {
-            tokenBuffer.addToken(TokenKind::Keyword_NaN, startIndex, currentIndex);
+            tokenBuffer.addToken(TokenKind::Keyword_Null, startIndex, currentIndex);
         }
         else
         {

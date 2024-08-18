@@ -27,6 +27,7 @@ namespace KDL {
         Keyword_NaN,
         Keyword_Infinity,
         Keyword_NegativeInfinity,
+        Keyword_Null,
         EndOfFile
     };
 

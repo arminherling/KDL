@@ -49,6 +49,8 @@ namespace KDL
                 return QString("Keyword_Infinity");
             case Keyword_NegativeInfinity:
                 return QString("Keyword_NegativeInfinity");
+            case Keyword_Null:
+                return QString("Keyword_Null");
             case EndOfFile:
                 return QString("EndOfFile");
             default:
