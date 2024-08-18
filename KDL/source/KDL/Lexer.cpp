@@ -214,27 +214,6 @@ namespace
         return false;
     }
 
-    static auto TryLexSignedIdentifier(TokenBuffer& tokenBuffer, const QString& source, i32& currentIndex) noexcept
-    {
-        const auto startIndex = currentIndex;
-        if (!IsSign(PeekCurrentChar(source, currentIndex)))
-            return false;
-
-        currentIndex++;
-
-        const auto firstChar = PeekCurrentChar(source, currentIndex);
-        if (IsIdentifierChar(firstChar) && !IsDigit(firstChar) && !IsDot(firstChar))
-            currentIndex++;
-
-        while (IsIdentifierChar(PeekCurrentChar(source, currentIndex)))
-        {
-            currentIndex++;
-        }
-
-        tokenBuffer.addToken(TokenKind::Identifier, startIndex, currentIndex);
-        return true;
-    }
-
     static auto TryLexDottedIdentifier(TokenBuffer& tokenBuffer, const QString& source, i32& currentIndex) noexcept
     {
         const auto startIndex = currentIndex;
@@ -259,22 +238,18 @@ namespace
         return true;
     }
 
-    static auto TryLexIdentifier(TokenBuffer& tokenBuffer, const QString& source, i32& currentIndex) noexcept
+    static auto TryLexSignedIdentifier(TokenBuffer& tokenBuffer, const QString& source, i32& currentIndex) noexcept
     {
-        const auto firstChar = PeekCurrentChar(source, currentIndex);
-        if ((IsSign(firstChar) && IsDot(PeekNextChar(source, currentIndex))) || IsDot(firstChar))
-        {
-            return TryLexDottedIdentifier(tokenBuffer, source, currentIndex);
-        }
-        else if (IsSign(firstChar))
-        {
-            return TryLexSignedIdentifier(tokenBuffer, source, currentIndex);
-        }
-
-        if (!IsIdentifierChar(firstChar))
+        const auto startIndex = currentIndex;
+        if (!IsSign(PeekCurrentChar(source, currentIndex)))
             return false;
 
-        const auto startIndex = currentIndex;
+        currentIndex++;
+
+        const auto firstChar = PeekCurrentChar(source, currentIndex);
+        if (IsIdentifierChar(firstChar) && !IsDigit(firstChar) && !IsDot(firstChar))
+            currentIndex++;
+
         while (IsIdentifierChar(PeekCurrentChar(source, currentIndex)))
         {
             currentIndex++;
@@ -282,6 +257,44 @@ namespace
 
         tokenBuffer.addToken(TokenKind::Identifier, startIndex, currentIndex);
         return true;
+    }
+
+    static auto TryLexUnambiguousIdentifier(TokenBuffer& tokenBuffer, const QString& source, i32& currentIndex) noexcept
+    {
+        const auto startIndex = currentIndex;
+        const auto firstChar = PeekCurrentChar(source, currentIndex);
+        if (IsIdentifierChar(firstChar) && !IsDigit(firstChar) && !IsSign(firstChar) && !IsDot(firstChar))
+            currentIndex++;
+        else 
+            return false;
+
+        while (IsIdentifierChar(PeekCurrentChar(source, currentIndex)))
+        {
+            currentIndex++;
+        }
+
+        tokenBuffer.addToken(TokenKind::Identifier, startIndex, currentIndex);
+        return true;
+    }
+
+    static auto TryLexIdentifier(TokenBuffer& tokenBuffer, const QString& source, i32& currentIndex) noexcept
+    {
+        const auto firstChar = PeekCurrentChar(source, currentIndex);
+        if ((IsSign(firstChar) && IsDot(PeekNextChar(source, currentIndex))) 
+            || IsDot(firstChar))
+        {
+            return TryLexDottedIdentifier(tokenBuffer, source, currentIndex);
+        }
+        else if (IsSign(firstChar))
+        {
+            return TryLexSignedIdentifier(tokenBuffer, source, currentIndex);
+        }
+        else
+        {
+            return TryLexUnambiguousIdentifier(tokenBuffer, source, currentIndex);
+        }
+        
+        return false;
     }
 }
 

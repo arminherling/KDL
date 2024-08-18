@@ -187,6 +187,7 @@ namespace
             { QString(), QString("-.node"), TokenKind::Identifier, 2},
             { QString(), QString(".node"), TokenKind::Identifier, 2},
             { QString(), QString("."), TokenKind::Identifier, 2},
+            { QString(), QString("+."), TokenKind::Identifier, 2},
         };
     }
 
