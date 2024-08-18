@@ -121,7 +121,6 @@ namespace
             { QString("CloseBracket"), QString("}"), TokenKind::CloseBracket, 2 },
             { QString("Semicolon"), QString(";"), TokenKind::Terminator, 2 },
 
-            { QString("Unknown"), QString("$"), TokenKind::Unknown, 2 },
             { QString("EOF"), QString(""), TokenKind::EndOfFile, 1 },
             { QString("EOF \\0"), QString("\0"), TokenKind::EndOfFile, 1 }
         };
@@ -188,6 +187,7 @@ namespace
             { QString(), QString(".node"), TokenKind::Identifier, 2},
             { QString(), QString("."), TokenKind::Identifier, 2},
             { QString(), QString("+."), TokenKind::Identifier, 2},
+            { QString(), QString("$"), TokenKind::Identifier, 2 },
         };
     }
 

@@ -49,9 +49,40 @@ namespace
         return nextChar.isNumber();
     }
 
+    [[nodiscard]] static auto IsNewline(const QChar& nextChar) noexcept
+    {
+        return nextChar == QChar(u'\r')// Carriage Return
+            || nextChar == QChar(u'\n')// Line Feed
+            || nextChar == QChar(u'\f') // Form Feed
+            || nextChar == QChar(u'\u0085') // Next Line
+            || nextChar == QChar(u'\u2028') // Line Separator
+            || nextChar == QChar(u'\u2029'); // Paragraph Separator
+    }
+
+    [[nodiscard]] static auto IsDisallowedIdentifierChar(const QChar& nextChar) noexcept
+    {
+        return nextChar == QChar(u'\\')
+            || nextChar == QChar(u'/')
+            || nextChar == QChar(u'(')
+            || nextChar == QChar(u')')
+            || nextChar == QChar(u'{')
+            || nextChar == QChar(u'}')
+            || nextChar == QChar(u';')
+            || nextChar == QChar(u'[')
+            || nextChar == QChar(u']')
+            || nextChar == QChar(u'\"')
+            || nextChar == QChar(u'#');
+    }
+
     [[nodiscard]] static auto IsIdentifierChar(const QChar& nextChar) noexcept
     {
-        return nextChar.isLetter();
+        return !nextChar.isSurrogate()
+            && !nextChar.isSpace()
+            && !IsNewline(nextChar)
+            && !IsDisallowedIdentifierChar(nextChar)
+            /* && disallowed literal code points*/
+            /* && equals*/
+            && nextChar != QChar(u'\0');
     }
 
     static auto NumberType(const QChar c, const QChar n) noexcept
