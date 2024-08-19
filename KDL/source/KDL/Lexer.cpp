@@ -33,56 +33,90 @@ namespace
             || (nextChar >= QChar(u'a') && nextChar <= QChar(u'f'))
             || (nextChar >= QChar(u'A') && nextChar <= QChar(u'F'));
     }
-    
-    [[nodiscard]] static auto IsSign(const QChar& nextChar) noexcept
+
+    [[nodiscard]] static auto IsSign(const QString& source, const i32& currentIndex) noexcept
     {
-        return (nextChar == QChar(u'-') || nextChar == QChar(u'+'));
+        const auto current = PeekCurrentChar(source, currentIndex);
+        return (current == QChar(u'-') || current == QChar(u'+'));
     }
 
-    [[nodiscard]] static auto IsDot(const QChar& nextChar) noexcept
+    [[nodiscard]] static auto IsDot(const QString& source, const i32& currentIndex) noexcept
     {
-        return (nextChar == QChar(u'.'));
+        const auto current = PeekCurrentChar(source, currentIndex);
+        return (current == QChar(u'.'));
     }
 
-    [[nodiscard]] static auto IsDigit(const QChar& nextChar) noexcept
+    [[nodiscard]] static auto IsDigit(const QString& source, const i32& currentIndex) noexcept
     {
-        return nextChar.isNumber();
+        const auto current = PeekCurrentChar(source, currentIndex);
+        return current.isNumber();
     }
 
-    [[nodiscard]] static auto IsNewline(const QChar& nextChar) noexcept
+    [[nodiscard]] static auto IsNewline(const QString& source, const i32& currentIndex) noexcept
     {
-        return nextChar == QChar(u'\r')// Carriage Return
-            || nextChar == QChar(u'\n')// Line Feed
-            || nextChar == QChar(u'\f') // Form Feed
-            || nextChar == QChar(u'\u0085') // Next Line
-            || nextChar == QChar(u'\u2028') // Line Separator
-            || nextChar == QChar(u'\u2029'); // Paragraph Separator
+        const auto current = PeekCurrentChar(source, currentIndex);
+        const auto next = PeekCurrentChar(source, currentIndex + 1);
+
+        return current == QChar(u'\r')                              // Carriage Return
+            || current == QChar(u'\n')                              // Line Feed
+            || (current == QChar(u'\r') && next == QChar(u'\n')) // Carriage Return Line Feed
+            || current == QChar(u'\f')                              // Form Feed
+            || current == QChar(u'\u0085')                          // Next Line
+            || current == QChar(u'\u2028')                          // Line Separator
+            || current == QChar(u'\u2029');                         // Paragraph Separator
     }
 
-    [[nodiscard]] static auto IsDisallowedIdentifierChar(const QChar& nextChar) noexcept
+    [[nodiscard]] static auto IsEquals(const QString& source, const i32& currentIndex) noexcept
     {
-        return nextChar == QChar(u'\\')
-            || nextChar == QChar(u'/')
-            || nextChar == QChar(u'(')
-            || nextChar == QChar(u')')
-            || nextChar == QChar(u'{')
-            || nextChar == QChar(u'}')
-            || nextChar == QChar(u';')
-            || nextChar == QChar(u'[')
-            || nextChar == QChar(u']')
-            || nextChar == QChar(u'\"')
-            || nextChar == QChar(u'#');
+        const auto current = PeekCurrentChar(source, currentIndex);
+        const auto next = PeekCurrentChar(source, currentIndex + 1);
+
+        return current == QChar(u'=')
+            || current == QChar(u'\ufe66')                              // Small Equal Sign
+            || current == QChar(u'\uff1d')                              // Fullwidth Equal Sign
+            || (current == QChar(0xD83D) && next == QChar(0xDFF0));     // Heavy Equal Sign
     }
 
-    [[nodiscard]] static auto IsIdentifierChar(const QChar& nextChar) noexcept
+    [[nodiscard]] static auto IsDisallowedIdentifierChar(const QString& source, const i32& currentIndex) noexcept
     {
-        return !nextChar.isSurrogate()
-            && !nextChar.isSpace()
-            && !IsNewline(nextChar)
-            && !IsDisallowedIdentifierChar(nextChar)
-            /* && disallowed literal code points*/
-            /* && equals*/
-            && nextChar != QChar(u'\0');
+        const auto current = PeekCurrentChar(source, currentIndex);
+
+        return current == QChar(u'\\')
+            || current == QChar(u'/')
+            || current == QChar(u'(')
+            || current == QChar(u')')
+            || current == QChar(u'{')
+            || current == QChar(u'}')
+            || current == QChar(u';')
+            || current == QChar(u'[')
+            || current == QChar(u']')
+            || current == QChar(u'\"')
+            || current == QChar(u'#');
+    }
+
+    [[nodiscard]] static auto IsDisallowedLiteralCodePoints(const QString& source, const i32& currentIndex) noexcept
+    {
+        const auto current = PeekCurrentChar(source, currentIndex);
+
+        return (current >= QChar(u'\u0000') && current <= QChar(u'\u0008'))
+            || (current >= QChar(u'\u000e') && current <= QChar(u'\u001f')) // various control characters
+            || current == QChar(u'\u007f')                                  // delete control character
+            || (current >= QChar(u'\u200f') && current <= QChar(u'\u200f')) // unicode "direction control" characters
+            || (current >= QChar(u'\u202a') && current <= QChar(u'\u202e')) // unicode "direction control" characters
+            || (current >= QChar(u'\u2066') && current <= QChar(u'\u2069')) // unicode "direction control" characters
+            || current == QChar(u'\ufeff');                                 // zero-width non-breaking space / byte order mark 
+    }
+
+    [[nodiscard]] static auto IsIdentifierChar(const QString& source, const i32& currentIndex) noexcept
+    {
+        const auto current = PeekCurrentChar(source, currentIndex);
+
+        return !current.isSurrogate()
+            && !current.isSpace()
+            && !IsNewline(source, currentIndex)
+            && !IsDisallowedIdentifierChar(source, currentIndex)
+            && !IsDisallowedLiteralCodePoints(source, currentIndex)
+            && !IsEquals(source, currentIndex);
     }
 
     static auto NumberType(const QChar c, const QChar n) noexcept
@@ -121,7 +155,7 @@ namespace
         const auto startIndex = currentIndex;
         currentIndex++;
 
-        if (PeekCurrentChar(source, currentIndex) == QChar('-'))
+        if (PeekCurrentChar(source, currentIndex) == QChar(u'-'))
             currentIndex++;
 
         while (PeekCurrentChar(source, currentIndex).isLetter())
@@ -165,7 +199,7 @@ namespace
 
         auto currentChar = PeekCurrentChar(source, currentIndex);
         auto nextChar = PeekNextChar(source, currentIndex);
-        if (IsSign(currentChar))
+        if (IsSign(source, currentIndex))
         {
             if (nextChar.isNumber())
             {
@@ -248,19 +282,18 @@ namespace
     static auto TryLexDottedIdentifier(TokenBuffer& tokenBuffer, const QString& source, i32& currentIndex) noexcept
     {
         const auto startIndex = currentIndex;
-        if (IsSign(PeekCurrentChar(source, currentIndex)))
+        if (IsSign(source, currentIndex))
             currentIndex++;
 
-        if (!IsDot(PeekCurrentChar(source, currentIndex)))
+        if (!IsDot(source, currentIndex))
             return false;
 
         currentIndex++;
 
-        const auto firstChar = PeekCurrentChar(source, currentIndex);
-        if (IsIdentifierChar(firstChar) && !IsDigit(firstChar))
+        if (IsIdentifierChar(source, currentIndex) && !IsDigit(source, currentIndex))
             currentIndex++;
 
-        while (IsIdentifierChar(PeekCurrentChar(source, currentIndex)))
+        while (IsIdentifierChar(source, currentIndex))
         {
             currentIndex++;
         }
@@ -272,16 +305,15 @@ namespace
     static auto TryLexSignedIdentifier(TokenBuffer& tokenBuffer, const QString& source, i32& currentIndex) noexcept
     {
         const auto startIndex = currentIndex;
-        if (!IsSign(PeekCurrentChar(source, currentIndex)))
+        if (!IsSign(source, currentIndex))
             return false;
 
         currentIndex++;
 
-        const auto firstChar = PeekCurrentChar(source, currentIndex);
-        if (IsIdentifierChar(firstChar) && !IsDigit(firstChar) && !IsDot(firstChar))
+        if (IsIdentifierChar(source, currentIndex) && !IsDigit(source, currentIndex) && !IsDot(source, currentIndex))
             currentIndex++;
 
-        while (IsIdentifierChar(PeekCurrentChar(source, currentIndex)))
+        while (IsIdentifierChar(source, currentIndex))
         {
             currentIndex++;
         }
@@ -293,13 +325,12 @@ namespace
     static auto TryLexUnambiguousIdentifier(TokenBuffer& tokenBuffer, const QString& source, i32& currentIndex) noexcept
     {
         const auto startIndex = currentIndex;
-        const auto firstChar = PeekCurrentChar(source, currentIndex);
-        if (IsIdentifierChar(firstChar) && !IsDigit(firstChar) && !IsSign(firstChar) && !IsDot(firstChar))
+        if (IsIdentifierChar(source, currentIndex) && !IsDigit(source, currentIndex) && !IsSign(source, currentIndex) && !IsDot(source, currentIndex))
             currentIndex++;
-        else 
+        else
             return false;
 
-        while (IsIdentifierChar(PeekCurrentChar(source, currentIndex)))
+        while (IsIdentifierChar(source, currentIndex))
         {
             currentIndex++;
         }
@@ -310,13 +341,12 @@ namespace
 
     static auto TryLexIdentifier(TokenBuffer& tokenBuffer, const QString& source, i32& currentIndex) noexcept
     {
-        const auto firstChar = PeekCurrentChar(source, currentIndex);
-        if ((IsSign(firstChar) && IsDot(PeekNextChar(source, currentIndex))) 
-            || IsDot(firstChar))
+        if ((IsSign(source, currentIndex) && IsDot(source, currentIndex))
+            || IsDot(source, currentIndex))
         {
             return TryLexDottedIdentifier(tokenBuffer, source, currentIndex);
         }
-        else if (IsSign(firstChar))
+        else if (IsSign(source, currentIndex))
         {
             return TryLexSignedIdentifier(tokenBuffer, source, currentIndex);
         }
@@ -324,7 +354,7 @@ namespace
         {
             return TryLexUnambiguousIdentifier(tokenBuffer, source, currentIndex);
         }
-        
+
         return false;
     }
 }
@@ -345,7 +375,7 @@ namespace KDL
                 {
                     const auto startIndex = currentIndex;
                     currentIndex++;
-                    if (PeekCurrentChar(source, currentIndex) == QChar('\n'))
+                    if (PeekCurrentChar(source, currentIndex) == QChar(u'\n'))
                         currentIndex++;
 
                     buffer.addToken(TokenKind::Newline, startIndex, currentIndex);
@@ -405,7 +435,7 @@ namespace KDL
                 }
                 case u'/':
                 {
-                    if (PeekNextChar(source, currentIndex) == QChar('-'))
+                    if (PeekNextChar(source, currentIndex) == QChar(u'-'))
                     {
                         buffer.addToken(TokenKind::SlashDash, currentIndex, currentIndex + 2);
                         currentIndex += 2;
