@@ -5,6 +5,12 @@ namespace
 {
     using namespace KDL;
 
+    struct BoolSizePair
+    {
+        bool Bool;
+        uint Size;
+    };
+
     [[nodiscard]] static auto PeekChar(const QString& source, i32 currentIndex, i32 offset) noexcept
     {
         const auto charIndex = currentIndex + offset;
@@ -52,29 +58,39 @@ namespace
         return current.isNumber();
     }
 
-    [[nodiscard]] static auto IsNewline(const QString& source, const i32& currentIndex) noexcept
+    [[nodiscard]] static BoolSizePair IsNewline(const QString& source, const i32& currentIndex) noexcept
     {
         const auto current = PeekCurrentChar(source, currentIndex);
         const auto next = PeekCurrentChar(source, currentIndex + 1);
 
-        return current == QChar(u'\r')                              // Carriage Return
-            || current == QChar(u'\n')                              // Line Feed
-            || (current == QChar(u'\r') && next == QChar(u'\n')) // Carriage Return Line Feed
-            || current == QChar(u'\f')                              // Form Feed
-            || current == QChar(u'\u0085')                          // Next Line
-            || current == QChar(u'\u2028')                          // Line Separator
-            || current == QChar(u'\u2029');                         // Paragraph Separator
+        if (current == QChar(u'\r') && next == QChar(u'\n'))    // Carriage Return Line Feed
+            return { .Bool = true, .Size = 2 };
+
+        if (current == QChar(u'\r')                             // Carriage Return
+            || current == QChar(u'\n')                          // Line Feed
+            || current == QChar(u'\f')                          // Form Feed
+            || current == QChar(u'\u0085')                      // Next Line
+            || current == QChar(u'\u2028')                      // Line Separator
+            || current == QChar(u'\u2029'))                     // Paragraph Separator
+            return { .Bool = true, .Size = 1 };
+
+        return { .Bool = false, .Size = 0 };
     }
 
-    [[nodiscard]] static auto IsEquals(const QString& source, const i32& currentIndex) noexcept
+    [[nodiscard]] static BoolSizePair IsEqual(const QString& source, const i32& currentIndex) noexcept
     {
         const auto current = PeekCurrentChar(source, currentIndex);
         const auto next = PeekCurrentChar(source, currentIndex + 1);
 
-        return current == QChar(u'=')
-            || current == QChar(u'\ufe66')                              // Small Equal Sign
-            || current == QChar(u'\uff1d')                              // Fullwidth Equal Sign
-            || (current == QChar(0xD83D) && next == QChar(0xDFF0));     // Heavy Equal Sign
+        if (current == QChar(u'=')
+            || current == QChar(u'\ufe66')                      // Small Equal Sign
+            || current == QChar(u'\uff1d'))                     // Fullwidth Equal Sign
+            return { .Bool = true, .Size = 1 };
+
+        if (current == QChar(0xD83D) && next == QChar(0xDFF0))  // Heavy Equal Sign
+            return { .Bool = true, .Size = 2 };
+
+        return { .Bool = false, .Size = 0 };
     }
 
     [[nodiscard]] static auto IsDisallowedIdentifierChar(const QString& source, const i32& currentIndex) noexcept
@@ -113,10 +129,10 @@ namespace
 
         return !current.isSurrogate()
             && !current.isSpace()
-            && !IsNewline(source, currentIndex)
+            && !IsNewline(source, currentIndex).Bool
             && !IsDisallowedIdentifierChar(source, currentIndex)
             && !IsDisallowedLiteralCodePoints(source, currentIndex)
-            && !IsEquals(source, currentIndex);
+            && !IsEqual(source, currentIndex).Bool;
     }
 
     static auto NumberType(const QChar c, const QChar n) noexcept
@@ -371,44 +387,6 @@ namespace KDL
             auto current = PeekCurrentChar(source, currentIndex);
             switch (current.unicode())
             {
-                case u'\r':     // Carriage Return
-                {
-                    const auto startIndex = currentIndex;
-                    currentIndex++;
-                    if (PeekCurrentChar(source, currentIndex) == QChar(u'\n'))
-                        currentIndex++;
-
-                    buffer.addToken(TokenKind::Newline, startIndex, currentIndex);
-                    break;
-                }
-                case u'\n':     // Line Feed
-                case u'\f':     // Form Feed
-                case u'\u0085': // Next Line
-                case u'\u2028': // Line Separator
-                case u'\u2029': // Paragraph Separator
-                {
-                    buffer.addToken(TokenKind::Newline, currentIndex, currentIndex + 1);
-                    currentIndex++;
-                    break;
-                }
-                case u'=':
-                case u'\ufe66': // Small Equal Sign
-                case u'\uff1d': // Fullwidth Equal Sign
-                {
-                    buffer.addToken(TokenKind::Equal, currentIndex, currentIndex + 1);
-                    currentIndex++;
-                    break;
-                }
-                case 0xD83D: // Heavy Equal Sign
-                {
-                    if (PeekNextChar(source, currentIndex).unicode() == 0xDFF0)
-                    {
-                        buffer.addToken(TokenKind::Equal, currentIndex, currentIndex + 2);
-                        currentIndex += 2;
-                        break;
-                    }
-                    goto default_case;
-                }
                 case u'(':
                 {
                     buffer.addToken(TokenKind::OpenParenthesis, currentIndex, currentIndex + 1);
@@ -433,18 +411,6 @@ namespace KDL
                     currentIndex++;
                     break;
                 }
-                case u'/':
-                {
-                    if (PeekNextChar(source, currentIndex) == QChar(u'-'))
-                    {
-                        buffer.addToken(TokenKind::SlashDash, currentIndex, currentIndex + 2);
-                        currentIndex += 2;
-                        break;
-                    }
-
-                    // TODO handle comments
-                    goto default_case;
-                }
                 case u';':
                 {
                     buffer.addToken(TokenKind::Terminator, currentIndex, currentIndex + 1);
@@ -461,12 +427,35 @@ namespace KDL
                     buffer.addToken(TokenKind::EndOfFile, currentIndex, currentIndex);
                     return buffer;
                 }
+                case u'/':
+                {
+                    if (PeekNextChar(source, currentIndex) == QChar(u'-'))
+                    {
+                        buffer.addToken(TokenKind::SlashDash, currentIndex, currentIndex + 2);
+                        currentIndex += 2;
+                        break;
+                    }
+
+                    // TODO handle comments
+                    [[fallthrough]];
+                }
                 default:
                 {
-                default_case:
-                    if (current.isSpace())
+                    if (auto result = IsNewline(source, currentIndex); result.Bool)
+                    {
+                        buffer.addToken(TokenKind::Newline, currentIndex, currentIndex + result.Size);
+                        currentIndex += result.Size;
+                        break;
+                    }
+                    else if (current.isSpace())
                     {
                         currentIndex++;
+                        break;
+                    }
+                    else if (auto result = IsEqual(source, currentIndex); result.Bool)
+                    {
+                        buffer.addToken(TokenKind::Equal, currentIndex, currentIndex + result.Size);
+                        currentIndex += result.Size;
                         break;
                     }
                     else if (TryLexNumber(buffer, source, currentIndex))
