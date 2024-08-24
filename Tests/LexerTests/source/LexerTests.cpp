@@ -268,6 +268,18 @@ namespace
         };
     }
 
+    QList<std::tuple<QString, QString, TokenKind, i32>> LineContinuation_Data()
+    {
+        return {
+            { QString(), QString("node \\"), TokenKind::Identifier, 2},
+            { QString(), QString("node \\// some comment"), TokenKind::Identifier, 2},
+            { QString(), QString("node \\  // some comment"), TokenKind::Identifier, 2},
+            { QString(), QString("node \\/* some comment */  "), TokenKind::Identifier, 2},
+            { QString(), QString("node \\  /* some comment */  "), TokenKind::Identifier, 2},
+            { QString(), QString("node \\  /* some \n comment */  "), TokenKind::Identifier, 2},
+        };
+    }
+
     QList<std::tuple<QString, QString, TokenKind, i32>> IsDisallowedLiteralCodePoints_Data()
     {
         return {
@@ -306,6 +318,7 @@ AalTest::TestSuite LexerTestsSuite()
     suite.add(QString("RawString"), Compare, RawString_Data);
     suite.add(QString("LineComment"), Compare, LineComment_Data);
     suite.add(QString("BlockComment"), Compare, BlockComment_Data);
+    suite.add(QString("LineContinuation"), Compare, LineContinuation_Data);
     suite.add(QString("IsDisallowedLiteralCodePoints"), Compare, IsDisallowedLiteralCodePoints_Data);
 
     return suite;

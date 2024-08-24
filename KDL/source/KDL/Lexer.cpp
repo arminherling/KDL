@@ -76,10 +76,35 @@ namespace
         return current.isNumber();
     }
 
+    [[nodiscard]] static auto IsSpace(const QString& source, const i32& currentIndex) noexcept
+    {
+        const auto current = PeekCurrentChar(source, currentIndex);
+
+        return current == QChar(u'\u0009')
+            || current == QChar(u'\u000b')
+            || current == QChar(u'\u0020')
+            || current == QChar(u'\u00a0')
+            || current == QChar(u'\u1680')
+            || current == QChar(u'\u2000')
+            || current == QChar(u'\u2001')
+            || current == QChar(u'\u2002')
+            || current == QChar(u'\u2003')
+            || current == QChar(u'\u2004')
+            || current == QChar(u'\u2005')
+            || current == QChar(u'\u2006')
+            || current == QChar(u'\u2007')
+            || current == QChar(u'\u2008')
+            || current == QChar(u'\u2009')
+            || current == QChar(u'\u200a')
+            || current == QChar(u'\u202f')
+            || current == QChar(u'\u205f')
+            || current == QChar(u'\u3000');
+    }
+
     [[nodiscard]] static BoolSizePair IsEscapeSequence(const QString& source, const i32& currentIndex) noexcept
     {
         const auto current = PeekCurrentChar(source, currentIndex);
-        const auto next = PeekCurrentChar(source, currentIndex + 1);
+        const auto next = PeekNextChar(source, currentIndex);
 
         if (current != QChar(u'\\'))
             return { .Bool = false, .Size = 1 };
@@ -119,10 +144,10 @@ namespace
                 return { .Bool = true, .Size = length };
             }
             default:
-                if (next.isSpace())  // Whitespace Escape
+                if (IsSpace(source, currentIndex + 1))  // Whitespace Escape
                 {
                     auto escapeIndex = currentIndex + 2;
-                    while (PeekCurrentChar(source, escapeIndex).isSpace())
+                    while (IsSpace(source, escapeIndex))
                     {
                         escapeIndex++;
                     }
@@ -203,9 +228,7 @@ namespace
 
     [[nodiscard]] static auto IsIdentifierChar(const QString& source, const i32& currentIndex) noexcept
     {
-        const auto current = PeekCurrentChar(source, currentIndex);
-
-        return !current.isSpace()
+        return !IsSpace(source, currentIndex)
             && !IsNewline(source, currentIndex).Bool
             && !IsDisallowedIdentifierChar(source, currentIndex)
             && !IsDisallowedLiteralCodePoints(source, currentIndex)
@@ -546,6 +569,52 @@ namespace
 
         return false;
     }
+
+    static auto EatLineComment(const QString& source, i32& currentIndex) noexcept
+    {
+        currentIndex += 2;
+        while (true)
+        {
+            if (const auto result = IsNewline(source, currentIndex); !result.Bool)
+            {
+                if (IsEOF(source, currentIndex))
+                    return;
+
+                currentIndex++;
+            }
+            else
+            {
+                currentIndex += result.Size;
+                return;
+            }
+        }
+    }
+
+    static auto EatBlockComment(const QString& source, i32& currentIndex) noexcept
+    {
+        currentIndex += 2;
+        auto nestingLevel = 1;
+        while (true)
+        {
+            if (PeekCurrentChar(source, currentIndex) == QChar(u'*') && PeekNextChar(source, currentIndex) == QChar(u'/'))
+            {
+                currentIndex += 2;
+                nestingLevel--;
+            }
+            else if (PeekCurrentChar(source, currentIndex) == QChar(u'/') && PeekNextChar(source, currentIndex) == QChar(u'*'))
+            {
+                currentIndex += 2;
+                nestingLevel++;
+            }
+            else
+            {
+                currentIndex++;
+            }
+
+            if (nestingLevel == 0)
+                return;
+        }
+    }
 }
 
 namespace KDL
@@ -605,49 +674,59 @@ namespace KDL
                     }
                     else if (PeekNextChar(source, currentIndex) == QChar(u'/')) // Line comments
                     {
-                        auto startIndex = currentIndex;
-                        currentIndex += 2;
-                        while (true)
-                        {
-                            if (const auto result = IsNewline(source, currentIndex); !result.Bool)
-                            {
-                                if (IsEOF(source, currentIndex))
-                                    break;
-
-                                currentIndex++;
-                            }
-                            else
-                            {
-                                currentIndex += result.Size;
-                                break;
-                            }
-                        }
+                        EatLineComment(source, currentIndex);
                         break;
                     }
                     else if (PeekNextChar(source, currentIndex) == QChar(u'*')) // Block comments
                     {
-                        auto startIndex = currentIndex;
-                        currentIndex += 2;
-                        auto nestingLevel = 1;
-                        while (true)
-                        {
-                            if (PeekCurrentChar(source, currentIndex) == QChar(u'*') && PeekNextChar(source, currentIndex) == QChar(u'/'))
-                            {
-                                currentIndex += 2;
-                                nestingLevel--;
-                            }
-                            else if (PeekCurrentChar(source, currentIndex) == QChar(u'/') && PeekNextChar(source, currentIndex) == QChar(u'*'))
-                            {
-                                currentIndex += 2;
-                                nestingLevel++;
-                            }
-                            else
-                            {
-                                currentIndex++;
-                            }
+                        EatBlockComment(source, currentIndex);
+                        break;
+                    }
+                    [[fallthrough]];
+                }
+                case u'\\': // Line continuation
+                {
+                    // we need to check current again for the fallthrough
+                    if (current == QChar(u'\\') &&
+                            (IsEOF(source, currentIndex + 1)
+                            || IsSpace(source, currentIndex + 1)
+                            || (PeekNextChar(source, currentIndex) == QChar(u'/') && PeekNextChar(source, currentIndex + 1) == QChar(u'/'))
+                            || (PeekNextChar(source, currentIndex) == QChar(u'/') && PeekNextChar(source, currentIndex + 1) == QChar(u'*'))
+                            || IsNewline(source, currentIndex + 1).Bool))
+                    {
+                        currentIndex++;
 
-                            if (nestingLevel == 0)
-                                break;
+                        while (IsSpace(source, currentIndex))
+                        {
+                            currentIndex++;
+                        }
+
+                        if (PeekCurrentChar(source, currentIndex) == QChar(u'/') && PeekNextChar(source, currentIndex) == QChar(u'/'))
+                        {
+                            EatLineComment(source, currentIndex);
+                            break;
+                            // eat newline
+                        }
+                        else if (PeekCurrentChar(source, currentIndex) == QChar(u'/') && PeekNextChar(source, currentIndex) == QChar(u'*'))
+                        {
+                            EatBlockComment(source, currentIndex);
+                        }
+                        
+                        while (IsSpace(source, currentIndex))
+                        {
+                            currentIndex++;
+                        }
+
+                        if (const auto result = IsNewline(source, currentIndex); result.Bool || IsEOF(source, currentIndex))
+                        {
+                            currentIndex += result.Size;
+                            break;
+                        }
+                        else
+                        {
+                            buffer.addToken(TokenKind::Error, currentIndex, currentIndex + 1);
+                            currentIndex++;
+                            break;
                         }
                         break;
                     }
@@ -661,7 +740,7 @@ namespace KDL
                         currentIndex += result.Size;
                         break;
                     }
-                    else if (current.isSpace())
+                    else if (IsSpace(source, currentIndex))
                     {
                         currentIndex++;
                         break;
