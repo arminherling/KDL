@@ -259,6 +259,14 @@ namespace
             { QString(), QString("node//node1"), TokenKind::Identifier, 2},
         };
     }
+
+    QList<std::tuple<QString, QString, TokenKind, i32>> BlockComment_Data()
+    {
+        return {
+            { QString(), QString("node /*comment*/ arg"), TokenKind::Identifier, 3},
+            { QString(), QString("node /* hi /* there */ everyone */ arg"), TokenKind::Identifier, 3},
+        };
+    }
 }
 
 AalTest::TestSuite LexerTestsSuite()
@@ -277,6 +285,7 @@ AalTest::TestSuite LexerTestsSuite()
     suite.add(QString("QuotedString"), Compare, QuotedString_Data);
     suite.add(QString("RawString"), Compare, RawString_Data);
     suite.add(QString("LineComment"), Compare, LineComment_Data);
+    suite.add(QString("BlockComment"), Compare, BlockComment_Data);
 
     return suite;
 }

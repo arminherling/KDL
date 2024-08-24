@@ -624,8 +624,33 @@ namespace KDL
                         }
                         break;
                     }
+                    else if (PeekNextChar(source, currentIndex) == QChar(u'*')) // Block comments
+                    {
+                        auto startIndex = currentIndex;
+                        currentIndex += 2;
+                        auto nestingLevel = 1;
+                        while (true)
+                        {
+                            if (PeekCurrentChar(source, currentIndex) == QChar(u'*') && PeekNextChar(source, currentIndex) == QChar(u'/'))
+                            {
+                                currentIndex += 2;
+                                nestingLevel--;
+                            }
+                            else if (PeekCurrentChar(source, currentIndex) == QChar(u'/') && PeekNextChar(source, currentIndex) == QChar(u'*'))
+                            {
+                                currentIndex += 2;
+                                nestingLevel++;
+                            }
+                            else
+                            {
+                                currentIndex++;
+                            }
 
-                    // TODO handle comments
+                            if (nestingLevel == 0)
+                                break;
+                        }
+                        break;
+                    }
                     [[fallthrough]];
                 }
                 default:
