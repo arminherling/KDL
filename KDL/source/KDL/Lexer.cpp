@@ -193,8 +193,7 @@ namespace
     {
         const auto current = PeekCurrentChar(source, currentIndex);
 
-        return !current.isSurrogate()
-            && !current.isSpace()
+        return !current.isSpace()
             && !IsNewline(source, currentIndex).Bool
             && !IsDisallowedIdentifierChar(source, currentIndex)
             && !IsDisallowedLiteralCodePoints(source, currentIndex)
