@@ -591,10 +591,31 @@ namespace KDL
                 }
                 case u'/':
                 {
-                    if (PeekNextChar(source, currentIndex) == QChar(u'-'))
+                    if (PeekNextChar(source, currentIndex) == QChar(u'-')) // Slash dash
                     {
                         buffer.addToken(TokenKind::SlashDash, currentIndex, currentIndex + 2);
                         currentIndex += 2;
+                        break;
+                    }
+                    else if (PeekNextChar(source, currentIndex) == QChar(u'/')) // Line comments
+                    {
+                        auto startIndex = currentIndex;
+                        currentIndex += 2;
+                        while (true)
+                        {
+                            if (const auto result = IsNewline(source, currentIndex); !result.Bool)
+                            {
+                                if (PeekCurrentChar(source, currentIndex) == QChar(u'\0'))
+                                    break;
+
+                                currentIndex++;
+                            }
+                            else
+                            {
+                                currentIndex += result.Size;
+                                break;
+                            }
+                        }
                         break;
                     }
 

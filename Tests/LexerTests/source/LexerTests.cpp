@@ -251,6 +251,13 @@ namespace
             { QString(), QString("#\"hello\\n\\r\\asd\"##world\"#"), TokenKind::Identifier_RawString, 2},
         };
     }
+
+    QList<std::tuple<QString, QString, TokenKind, i32>> LineComment_Data()
+    {
+        return {
+            { QString(), QString("//node"), TokenKind::EndOfFile, 1},
+        };
+    }
 }
 
 AalTest::TestSuite LexerTestsSuite()
@@ -268,6 +275,7 @@ AalTest::TestSuite LexerTestsSuite()
     suite.add(QString("Identifier"), Compare, Identifier_Data);
     suite.add(QString("QuotedString"), Compare, QuotedString_Data);
     suite.add(QString("RawString"), Compare, RawString_Data);
+    suite.add(QString("LineComment"), Compare, LineComment_Data);
 
     return suite;
 }
