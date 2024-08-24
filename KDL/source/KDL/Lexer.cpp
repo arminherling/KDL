@@ -305,6 +305,7 @@ namespace
         }
         else
         {
+            currentIndex = startIndex;
             return false;
         }
 
@@ -759,7 +760,7 @@ namespace KDL
                     {
                         break;
                     }
-                    else if (/*IsDisallowedIdentifierChar(source, currentIndex) || */IsDisallowedLiteralCodePoints(source, currentIndex))
+                    else if (IsDisallowedIdentifierChar(source, currentIndex) || IsDisallowedLiteralCodePoints(source, currentIndex))
                     {
                         buffer.addToken(TokenKind::Error, currentIndex, currentIndex + 1);
                         currentIndex++;
