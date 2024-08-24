@@ -41,6 +41,8 @@ namespace KDL
                 return QString("Identifier");
             case Identifier_QuotedString:
                 return QString("Identifier_QuotedString");
+            case Identifier_RawString:
+                return QString("Identifier_RawString");
             case Keyword_True:
                 return QString("Keyword_True");
             case Keyword_False:

@@ -40,6 +40,12 @@ namespace
             || (nextChar >= QChar(u'A') && nextChar <= QChar(u'F'));
     }
 
+    [[nodiscard]] static auto IsHash(const QString& source, const i32& currentIndex) noexcept
+    {
+        const auto current = PeekCurrentChar(source, currentIndex);
+        return current == QChar(u'#');
+    }
+
     [[nodiscard]] static auto IsQuote(const QString& source, const i32& currentIndex) noexcept
     {
         const auto current = PeekCurrentChar(source, currentIndex);
@@ -270,8 +276,10 @@ namespace
         }
         else
         {
-            tokenBuffer.addToken(TokenKind::Unknown, startIndex, currentIndex);
+            return false;
         }
+
+        return true;
     };
 
     static auto TryLexNumber(TokenBuffer& tokenBuffer, const QString& source, i32& currentIndex) noexcept
@@ -392,6 +400,56 @@ namespace
         return true;
     }
 
+    static auto TryLexRawString(TokenBuffer& tokenBuffer, const QString& source, i32& currentIndex) noexcept
+    {
+        const auto startIndex = currentIndex;
+        auto startHashCount = 0;
+        while (IsHash(source, currentIndex))
+        {
+            currentIndex++;
+            startHashCount++;
+        }
+
+        if (!IsQuote(source, currentIndex))
+        {
+            currentIndex = startIndex;
+            return false;
+        }
+        currentIndex++;
+
+        while (true)
+        {
+            if (!IsQuote(source, currentIndex) && PeekCurrentChar(source, currentIndex) != QChar(u'\0'))
+            {
+                currentIndex++;
+                continue;
+            }
+
+            if (IsQuote(source, currentIndex))
+            {
+                currentIndex++;
+                auto endHasCount = 0;
+
+                while (IsHash(source, currentIndex))
+                {
+                    currentIndex++;
+                    endHasCount++;
+                }
+
+                if (startHashCount == endHasCount)
+                    break;
+
+                continue;
+            }
+            else if (PeekCurrentChar(source, currentIndex) != QChar(u'\0'))
+                currentIndex++;
+
+            break;
+        }
+
+        tokenBuffer.addToken(TokenKind::Identifier_RawString, startIndex, currentIndex);
+        return true;
+    }
     static auto TryLexDottedIdentifier(TokenBuffer& tokenBuffer, const QString& source, i32& currentIndex) noexcept
     {
         const auto startIndex = currentIndex;
@@ -454,7 +512,15 @@ namespace
 
     static auto TryLexIdentifier(TokenBuffer& tokenBuffer, const QString& source, i32& currentIndex) noexcept
     {
-        if (IsQuote(source, currentIndex))
+        if (IsHash(source, currentIndex))
+        {
+            if (!IsHash(source, currentIndex + 1) && !IsQuote(source, currentIndex + 1))
+            {
+                return LexKeyword(tokenBuffer, source, currentIndex);
+            }
+            return TryLexRawString(tokenBuffer, source, currentIndex);
+        }
+        else if (IsQuote(source, currentIndex))
         {
             return TryLexQuotedString(tokenBuffer, source, currentIndex);
         }
@@ -516,11 +582,6 @@ namespace KDL
                 {
                     buffer.addToken(TokenKind::Terminator, currentIndex, currentIndex + 1);
                     currentIndex++;
-                    break;
-                }
-                case u'#':
-                {
-                    LexKeyword(buffer, source, currentIndex);
                     break;
                 }
                 case u'\0':

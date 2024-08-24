@@ -242,6 +242,15 @@ namespace
             { QString("Whitespace Escape"), QString("\"\\        \""), TokenKind::Identifier_QuotedString, 2},
         };
     }
+
+    QList<std::tuple<QString, QString, TokenKind, i32>> RawString_Data()
+    {
+        return {
+            { QString(), QString("#\"node\"#"), TokenKind::Identifier_RawString, 2},
+            { QString(), QString("##\"hello\\n\\r\\asd\"#world\"##"), TokenKind::Identifier_RawString, 2},
+            { QString(), QString("#\"hello\\n\\r\\asd\"##world\"#"), TokenKind::Identifier_RawString, 2},
+        };
+    }
 }
 
 AalTest::TestSuite LexerTestsSuite()
@@ -258,6 +267,7 @@ AalTest::TestSuite LexerTestsSuite()
     suite.add(QString("Number"), Compare, Number_Data);
     suite.add(QString("Identifier"), Compare, Identifier_Data);
     suite.add(QString("QuotedString"), Compare, QuotedString_Data);
+    suite.add(QString("RawString"), Compare, RawString_Data);
 
     return suite;
 }
