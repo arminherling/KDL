@@ -256,6 +256,7 @@ namespace
     {
         return {
             { QString(), QString("//node"), TokenKind::EndOfFile, 1},
+            { QString(), QString("node//node1"), TokenKind::Identifier, 2},
         };
     }
 }

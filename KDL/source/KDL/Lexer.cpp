@@ -64,6 +64,12 @@ namespace
         return (current == QChar(u'.'));
     }
 
+    [[nodiscard]] static auto IsEOF(const QString& source, const i32& currentIndex) noexcept
+    {
+        const auto current = PeekCurrentChar(source, currentIndex);
+        return (current == QChar(u'\0'));
+    }
+
     [[nodiscard]] static auto IsDigit(const QString& source, const i32& currentIndex) noexcept
     {
         const auto current = PeekCurrentChar(source, currentIndex);
@@ -384,13 +390,13 @@ namespace
                 continue;
             }
 
-            if (!IsQuote(source, currentIndex) && PeekCurrentChar(source, currentIndex) != QChar(u'\0'))
+            if (!IsQuote(source, currentIndex) && !IsEOF(source, currentIndex))
             {
                 currentIndex++;
                 continue;
             }
 
-            if (PeekCurrentChar(source, currentIndex) != QChar(u'\0'))
+            if (!IsEOF(source, currentIndex))
                 currentIndex++;
 
             break;
@@ -419,7 +425,7 @@ namespace
 
         while (true)
         {
-            if (!IsQuote(source, currentIndex) && PeekCurrentChar(source, currentIndex) != QChar(u'\0'))
+            if (!IsQuote(source, currentIndex) && !IsEOF(source, currentIndex))
             {
                 currentIndex++;
                 continue;
@@ -441,7 +447,7 @@ namespace
 
                 continue;
             }
-            else if (PeekCurrentChar(source, currentIndex) != QChar(u'\0'))
+            else if (!IsEOF(source, currentIndex))
                 currentIndex++;
 
             break;
@@ -605,7 +611,7 @@ namespace KDL
                         {
                             if (const auto result = IsNewline(source, currentIndex); !result.Bool)
                             {
-                                if (PeekCurrentChar(source, currentIndex) == QChar(u'\0'))
+                                if (IsEOF(source, currentIndex))
                                     break;
 
                                 currentIndex++;
