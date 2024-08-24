@@ -238,7 +238,7 @@ namespace
             { QString("Form Feed"), QString("\"\\f\""), TokenKind::Identifier_QuotedString, 2},
             { QString("Space"), QString("\"\\s\""), TokenKind::Identifier_QuotedString, 2},
             { QString("Unicode Escape"), QString("\"\\u{000000}\""), TokenKind::Identifier_QuotedString, 2},
-            { QString("Unicode Escape"), QString("\"\\u{FFFFFF}\""), TokenKind::Identifier_QuotedString, 2},
+            { QString("Unicode Escape"), QString("\"\\u{10FFFF}\""), TokenKind::Identifier_QuotedString, 2},
             { QString("Whitespace Escape"), QString("\"\\        \""), TokenKind::Identifier_QuotedString, 2},
         };
     }
@@ -267,6 +267,26 @@ namespace
             { QString(), QString("node /* hi /* there */ everyone */ arg"), TokenKind::Identifier, 3},
         };
     }
+
+    QList<std::tuple<QString, QString, TokenKind, i32>> IsDisallowedLiteralCodePoints_Data()
+    {
+        return {
+            { QString("BOM"), QString("/**/ \ufeff"), TokenKind::Error, 2},
+            { QString("0x007F (Delete)"), QString("\u2068"), TokenKind::Error, 2},
+            { QString("0x2068"), QString("\u2068"), TokenKind::Error, 2},
+            { QString("0x202A"), QString("\u202a"), TokenKind::Error, 2},
+            { QString("0x2066"), QString("\u2066"), TokenKind::Error, 2},
+            { QString("0x200E"), QString("\u200e"), TokenKind::Error, 2},
+            { QString("0x202D"), QString("\u202d"), TokenKind::Error, 2},
+            { QString("0x202C"), QString("\u202c"), TokenKind::Error, 2},
+            { QString("0x2069"), QString("\u2069"), TokenKind::Error, 2},
+            { QString("0x202B"), QString("\u202b"), TokenKind::Error, 2},
+            { QString("0x2067"), QString("\u2067"), TokenKind::Error, 2},
+            { QString("0x200F"), QString("\u200f"), TokenKind::Error, 2},
+            { QString("0x202E"), QString("\u202e"), TokenKind::Error, 2},
+            { QString("0x0019"), QString("\u0019"), TokenKind::Error, 2},
+        };
+    }
 }
 
 AalTest::TestSuite LexerTestsSuite()
@@ -286,6 +306,7 @@ AalTest::TestSuite LexerTestsSuite()
     suite.add(QString("RawString"), Compare, RawString_Data);
     suite.add(QString("LineComment"), Compare, LineComment_Data);
     suite.add(QString("BlockComment"), Compare, BlockComment_Data);
+    suite.add(QString("IsDisallowedLiteralCodePoints"), Compare, IsDisallowedLiteralCodePoints_Data);
 
     return suite;
 }

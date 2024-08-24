@@ -195,7 +195,7 @@ namespace
         return (current >= QChar(u'\u0000') && current <= QChar(u'\u0008'))
             || (current >= QChar(u'\u000e') && current <= QChar(u'\u001f')) // various control characters
             || current == QChar(u'\u007f')                                  // delete control character
-            || (current >= QChar(u'\u200f') && current <= QChar(u'\u200f')) // unicode "direction control" characters
+            || (current >= QChar(u'\u200e') && current <= QChar(u'\u200f')) // unicode "direction control" characters
             || (current >= QChar(u'\u202a') && current <= QChar(u'\u202e')) // unicode "direction control" characters
             || (current >= QChar(u'\u2066') && current <= QChar(u'\u2069')) // unicode "direction control" characters
             || current == QChar(u'\ufeff');                                 // zero-width non-breaking space / byte order mark 
@@ -678,6 +678,12 @@ namespace KDL
                     }
                     else if (TryLexIdentifier(buffer, source, currentIndex))
                     {
+                        break;
+                    }
+                    else if (/*IsDisallowedIdentifierChar(source, currentIndex) || */IsDisallowedLiteralCodePoints(source, currentIndex))
+                    {
+                        buffer.addToken(TokenKind::Error, currentIndex, currentIndex + 1);
+                        currentIndex++;
                         break;
                     }
 
