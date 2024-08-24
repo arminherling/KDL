@@ -22,6 +22,7 @@ namespace KDL {
         Number_Hexadecimal,
         Number_Decimal,
         Identifier,
+        Identifier_QuotedString,
         Keyword_True,
         Keyword_False,
         Keyword_NaN,

@@ -39,6 +39,8 @@ namespace KDL
                 return QString("Number_Decimal");
             case Identifier:
                 return QString("Identifier");
+            case Identifier_QuotedString:
+                return QString("Identifier_QuotedString");
             case Keyword_True:
                 return QString("Keyword_True");
             case Keyword_False:

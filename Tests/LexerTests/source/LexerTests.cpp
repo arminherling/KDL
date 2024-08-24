@@ -176,21 +176,6 @@ namespace
         };
     }
 
-    QList<std::tuple<QString, QString, TokenKind, i32>> Identifier_Data()
-    {
-        return {
-            { QString(), QString("node"), TokenKind::Identifier, 2},
-            { QString(), QString("+node"), TokenKind::Identifier, 2 },
-            { QString(), QString("-node"), TokenKind::Identifier, 2},
-            { QString(), QString("+.node"), TokenKind::Identifier, 2 },
-            { QString(), QString("-.node"), TokenKind::Identifier, 2},
-            { QString(), QString(".node"), TokenKind::Identifier, 2},
-            { QString(), QString("."), TokenKind::Identifier, 2},
-            { QString(), QString("+."), TokenKind::Identifier, 2},
-            { QString(), QString("$"), TokenKind::Identifier, 2 },
-        };
-    }
-
     QList<std::tuple<QString, QString, TokenKind, i32>> Number_Data()
     {
         return {
@@ -224,6 +209,39 @@ namespace
             { QString(), QString("1.0E10e10"), TokenKind::Number_Decimal, 2 },
         };
     }
+
+    QList<std::tuple<QString, QString, TokenKind, i32>> Identifier_Data()
+    {
+        return {
+            { QString(), QString("node"), TokenKind::Identifier, 2},
+            { QString(), QString("+node"), TokenKind::Identifier, 2 },
+            { QString(), QString("-node"), TokenKind::Identifier, 2},
+            { QString(), QString("+.node"), TokenKind::Identifier, 2 },
+            { QString(), QString("-.node"), TokenKind::Identifier, 2},
+            { QString(), QString(".node"), TokenKind::Identifier, 2},
+            { QString(), QString("."), TokenKind::Identifier, 2},
+            { QString(), QString("+."), TokenKind::Identifier, 2},
+            { QString(), QString("$"), TokenKind::Identifier, 2 },
+        };
+    }
+
+    QList<std::tuple<QString, QString, TokenKind, i32>> QuotedString_Data()
+    {
+        return {
+            { QString(), QString("\"node\""), TokenKind::Identifier_QuotedString, 2},
+            { QString("Line Feed"), QString("\"\\n\""), TokenKind::Identifier_QuotedString, 2},
+            { QString("Carriage Return"), QString("\"\\r\""), TokenKind::Identifier_QuotedString, 2},
+            { QString("Character Tabulation (Tab)"), QString("\"\\t\""), TokenKind::Identifier_QuotedString, 2},
+            { QString("Reverse Solidus (Backslash)"), QString("\"\\\\\""), TokenKind::Identifier_QuotedString, 2},
+            { QString("Quotation Mark (Double Quote)"), QString("\"\\\"\""), TokenKind::Identifier_QuotedString, 2},
+            { QString("Backspace"), QString("\"\\b\""), TokenKind::Identifier_QuotedString, 2},
+            { QString("Form Feed"), QString("\"\\f\""), TokenKind::Identifier_QuotedString, 2},
+            { QString("Space"), QString("\"\\s\""), TokenKind::Identifier_QuotedString, 2},
+            { QString("Unicode Escape"), QString("\"\\u{000000}\""), TokenKind::Identifier_QuotedString, 2},
+            { QString("Unicode Escape"), QString("\"\\u{FFFFFF}\""), TokenKind::Identifier_QuotedString, 2},
+            { QString("Whitespace Escape"), QString("\"\\        \""), TokenKind::Identifier_QuotedString, 2},
+        };
+    }
 }
 
 AalTest::TestSuite LexerTestsSuite()
@@ -239,6 +257,7 @@ AalTest::TestSuite LexerTestsSuite()
     suite.add(QString("Keywords"), Compare, Keywords_Data);
     suite.add(QString("Number"), Compare, Number_Data);
     suite.add(QString("Identifier"), Compare, Identifier_Data);
+    suite.add(QString("QuotedString"), Compare, QuotedString_Data);
 
     return suite;
 }

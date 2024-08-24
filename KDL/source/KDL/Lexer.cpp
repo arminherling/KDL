@@ -40,6 +40,12 @@ namespace
             || (nextChar >= QChar(u'A') && nextChar <= QChar(u'F'));
     }
 
+    [[nodiscard]] static auto IsQuote(const QString& source, const i32& currentIndex) noexcept
+    {
+        const auto current = PeekCurrentChar(source, currentIndex);
+        return current == QChar(u'\"');
+    }
+
     [[nodiscard]] static auto IsSign(const QString& source, const i32& currentIndex) noexcept
     {
         const auto current = PeekCurrentChar(source, currentIndex);
@@ -56,6 +62,66 @@ namespace
     {
         const auto current = PeekCurrentChar(source, currentIndex);
         return current.isNumber();
+    }
+
+    [[nodiscard]] static BoolSizePair IsEscapeSequence(const QString& source, const i32& currentIndex) noexcept
+    {
+        const auto current = PeekCurrentChar(source, currentIndex);
+        const auto next = PeekCurrentChar(source, currentIndex + 1);
+
+        if (current != QChar(u'\\'))
+            return { .Bool = false, .Size = 1 };
+
+        switch (next.unicode())
+        {
+            case u'n': // Line Feed
+            case u'r': // Carriage Return
+            case u't': // Character Tabulation (Tab)
+            case u'\\': // Reverse Solidus (Backslash)
+            case u'\"': // Quotation Mark (Double Quote)
+            case u'b': // Backspace
+            case u'f': // Form Feed
+            case u's': // Space
+            {
+                return { .Bool = true, .Size = 2 };
+            }
+            case u'u':  // Unicode Escape
+            {
+                auto escapeIndex = currentIndex + 2;
+                if (PeekCurrentChar(source, escapeIndex) != QChar('{'))
+                    break;
+                escapeIndex++;
+
+                auto hexCharCount = 0;
+                while (hexCharCount != 6 && IsHexadecimal(PeekCurrentChar(source, escapeIndex)))
+                {
+                    escapeIndex++;
+                    hexCharCount++;
+                }
+
+                if (PeekCurrentChar(source, escapeIndex) != QChar('}'))
+                    break;
+                escapeIndex++;
+
+                uint length = (escapeIndex - currentIndex);
+                return { .Bool = true, .Size = length };
+            }
+            default:
+                if (next.isSpace())  // Whitespace Escape
+                {
+                    auto escapeIndex = currentIndex + 2;
+                    while (PeekCurrentChar(source, escapeIndex).isSpace())
+                    {
+                        escapeIndex++;
+                    }
+
+                    uint length = (escapeIndex - currentIndex);
+                    return { .Bool = true, .Size = length };
+                }
+                break;  // TODO \ followed by any other character isnt allowed, handle error
+        }
+
+        return { .Bool = false, .Size = 1 };
     }
 
     [[nodiscard]] static BoolSizePair IsNewline(const QString& source, const i32& currentIndex) noexcept
@@ -295,6 +361,38 @@ namespace
         return false;
     }
 
+    static auto TryLexQuotedString(TokenBuffer& tokenBuffer, const QString& source, i32& currentIndex) noexcept
+    {
+        const auto startIndex = currentIndex;
+        if (!IsQuote(source, currentIndex))
+            return false;
+
+        currentIndex++;
+
+        while (true)
+        {
+            if (auto result = IsEscapeSequence(source, currentIndex); result.Bool)
+            {
+                currentIndex += result.Size;
+                continue;
+            }
+
+            if (!IsQuote(source, currentIndex) && PeekCurrentChar(source, currentIndex) != QChar(u'\0'))
+            {
+                currentIndex++;
+                continue;
+            }
+
+            if (PeekCurrentChar(source, currentIndex) != QChar(u'\0'))
+                currentIndex++;
+
+            break;
+        }
+
+        tokenBuffer.addToken(TokenKind::Identifier_QuotedString, startIndex, currentIndex);
+        return true;
+    }
+
     static auto TryLexDottedIdentifier(TokenBuffer& tokenBuffer, const QString& source, i32& currentIndex) noexcept
     {
         const auto startIndex = currentIndex;
@@ -357,7 +455,11 @@ namespace
 
     static auto TryLexIdentifier(TokenBuffer& tokenBuffer, const QString& source, i32& currentIndex) noexcept
     {
-        if ((IsSign(source, currentIndex) && IsDot(source, currentIndex))
+        if (IsQuote(source, currentIndex))
+        {
+            return TryLexQuotedString(tokenBuffer, source, currentIndex);
+        }
+        else if ((IsSign(source, currentIndex) && IsDot(source, currentIndex))
             || IsDot(source, currentIndex))
         {
             return TryLexDottedIdentifier(tokenBuffer, source, currentIndex);
